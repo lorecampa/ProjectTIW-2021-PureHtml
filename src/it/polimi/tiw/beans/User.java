@@ -1,4 +1,4 @@
-package it.polimi.beans;
+package it.polimi.tiw.beans;
 
 
 
@@ -9,10 +9,7 @@ public class User{
 	private String password;
 	private String name;
 	private String surname;
-	
-	public User() {
-		super();
-	}
+
 	
 	public User(Integer id, String username, String email, String password,
 			String name, String surname) {

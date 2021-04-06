@@ -3,7 +3,7 @@
   <display-name>TIW-Project-2021-MusicPlaylist</display-name>
   <context-param>
     <param-name>dbUrl</param-name>
-    <param-value>jdbc:mysql://localhost:3306/MusicPlaylistdb</param-value>
+    <param-value>jdbc:mysql://localhost:3306/MusicPlaylistdb?serverTimezone=UTC</param-value>
   </context-param>
   <context-param>
     <param-name>dbUser</param-name>
@@ -18,8 +18,22 @@
     <param-value>com.mysql.cj.jdbc.Driver</param-value>
   </context-param>
   
+  <context-param>
+    <param-name>imagePath</param-name>
+    <param-value>/Users/lorecampa/eclipseStoring/MusicPlaylist/images</param-value>
+  </context-param>
+  <context-param>
+    <param-name>audioPath</param-name>
+    <param-value>/Users/lorecampa/eclipseStoring/MusicPlaylist/audio</param-value>
+  </context-param>
+  
+  <session-config>
+        <session-timeout>60</session-timeout>
+	</session-config>
+  
   <welcome-file-list>
-    <welcome-file>index.html</welcome-file>
+    <welcome-file>SubmitLogin</welcome-file>
   </welcome-file-list>
+  
   
 </web-app>

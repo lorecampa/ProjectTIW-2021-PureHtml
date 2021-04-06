@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>HomePage</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+<body>
+	<h1 th:text="'Welcome '+ ${username}">Welcome User</h1>
+	
+	
+	
+	<table border="1">
+		<thead>
+			<tr>
+				<th>Your Playlists</th>
+			</tr>
+			
+		</thead>
+		
+		<tbody th:remove= "all-but-first">
+			<tr th:each= "playlist : ${playlists}">
+				<td th:text= "${playlist.title}">Title</td>
+				
+			</tr>
+			<tr>
+				<td>Esami Avici</td>
+				<td>23/09/19</td>
+			</tr>
+			<tr>
+				<td>Sanremo 2021</td>
+				<td>2/12/19</td>		
+			<tr>
+				<td>Rock</td>
+				<td>12/09/19</td>
+			</tr>
+			<tr>
+				<td>Lofi</td>
+				<td>23/01/15</td>
+			</tr>
+		</tbody>
+	</table>
+	
+	
+	<h1>Create Playlist</h1>
+		
+	<form method= "POST" action="/MusicPlaylist/CreatePlaylist">
+		<label>Title </label><input name = "name" type="text" required><br>
+		<input value = "create" type = "submit">
+	</form>
+	
+	
+	
+	
+	<h1>Create Song</h1>
+	<form method= "POST" action="/MusicPlaylist/CreateSong" enctype="multipart/form-data">
+		<label>Title</label> <input name = "title" id="title" type="text" required><br>
+		<label>Album </label><input name = "album" id = "album" type="text" required><br>
+		<label>Interpreter</label> <input name = "interpreter" type="text" required><br>
+		<label>Year</label> <input name = "year" type="number" min=0 required><br>
+		<label>Genre</label>
+		<select name= "genre" required>
+			<option value= "Rock">Rock</option>
+			<option value= "Pop">Pop</option>
+			<option value= "Electronic">Electronic</option>
+			<option value= "Soul">Soul</option>
+			<option value= "Funk">Funk</option>
+			<option value= "Country">Country</option>
+			<option value= "Latin">Latin</option>
+			<option value= "Reggae">Raggae</option>
+			<option value= "Hip Hop">Hip Hop</option>
+			<option value= "Punk">Punk</option>
+			<option value= "Polka">Polka</option>
+		</select><br>
+		<label>Picture </label><input name = "picture" type="file" required><br>
+		<label>Track file </label><input name = "audio" type="file"required><br>
+		<input value = "create" type = "submit">		
+	</form>
+	
+
+</body>
+</html>

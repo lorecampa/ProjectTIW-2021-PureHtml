@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Registration</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<h1>Registration</h1>
+	
+	<form method= "post" action="/MusicPlaylist/SubmitRegistration">
+		<label>Username <input name = "username" type="text" required></label><br>
+		
+		<label>Email <input name = "email" type="text" required></label><br>
+		
+		<label>Password <input name = "password" type = "password" required ></label><br>
+		
+		<label>Name <input name = "name" type = "text" required></label><br>
+		
+		<label>Surname <input name = "surname" type = "text" required></label><br>
+		
+		<input value = "register" type = "submit">
+	</form>
+	
+	<br> <a href= "Login.html">Are you already registered? Go back to login page</a>
+
+	
+</body>
+</html>

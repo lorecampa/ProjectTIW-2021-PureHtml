@@ -1,4 +1,4 @@
-package it.polimi.beans;
+package it.polimi.tiw.beans;
 
 public class Song{
 	private Integer id;
@@ -12,6 +12,7 @@ public class Song{
 	
 	public Song(String title, String imageUrl, String songUrl, Integer idCreator, Integer idAlbum) {
 		super();
+		this.id = null;
 		this.title = title;
 		this.imageUrl = imageUrl;
 		this.songUrl = songUrl;
