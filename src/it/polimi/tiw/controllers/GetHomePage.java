@@ -24,91 +24,80 @@ import it.polimi.tiw.beans.Playlist;
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.PlaylistDAO;
 import it.polimi.tiw.dao.UserDAO;
-/**
- * Servlet implementation class GetHomePage
- */
+import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.SessionControlHandler;
+import it.polimi.tiw.utils.TymeleafHandler;
+
 @WebServlet("/GetHomePage")
 public class GetHomePage extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
 	private TemplateEngine templateEngine;
 	
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+ 
     public GetHomePage() {
         super();
-        // TODO Auto-generated constructor stub
     }
     public void init() throws ServletException {
     	ServletContext servletContext = getServletContext();
-		ServletContextTemplateResolver templateResolver = new ServletContextTemplateResolver(servletContext);
-		templateResolver.setTemplateMode(TemplateMode.HTML);
-		this.templateEngine = new TemplateEngine();
-		this.templateEngine.setTemplateResolver(templateResolver);
-		templateResolver.setSuffix(".html");
-		try {
-			ServletContext context = getServletContext();
-			String driver = context.getInitParameter("dbDriver");
-			String url = context.getInitParameter("dbUrl");
-			String user = context.getInitParameter("dbUser");
-			String password = context.getInitParameter("dbPassword");
-			Class.forName(driver);
-			connection = DriverManager.getConnection(url, user, password);
-
-		} catch (ClassNotFoundException e) {
-			throw new UnavailableException("Can't load database driver");
-		} catch (SQLException e) {
-			throw new UnavailableException("Couldn't get db connection");
-		}
+    	connection = ConnectionHandler.getConnection(servletContext);
+		this.templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
 		
 	}
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
+	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		//userInformation after login
+		if(!SessionControlHandler.isSessionValidate(request, response))	return;
+		
 		HttpSession session = request.getSession();
-		int idUser = (int) session.getAttribute("idUser");
-		UserDAO userDAO = new UserDAO(connection);
-		User user = null;
-		try {
-			user = userDAO.findUserById(idUser);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		if (user == null) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "User session not found in db");
-			return;
-		}
+		User user = (User) session.getAttribute("user");
+		
 		
 		//Playlists information
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		ArrayList<Playlist> playlists = null;
 		try {
-			playlists = playlistDAO.findAllPlaylistById(idUser);
+			//return empty array if there are not playlists created
+			playlists = playlistDAO.findAllPlaylistByUserId(user.getId());
 			
 		} catch (SQLException e) {
+			//debug
 			e.printStackTrace();
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding playlist");
+
 		}
 		
-		String path = "Templates/HomePage";
+		
+		String errorCreatePlaylist = request.getParameter("errorCreatePlaylist");
+		String errorCreateSong = request.getParameter("errorCreateSong");
+
+		
+		
+		String path = "/WEB-INF/Templates/HomePage";
 		ServletContext servletContext = getServletContext();
 		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-		ctx.setVariable("username", user.getUsername());
 		ctx.setVariable("playlists", playlists);
+		if (errorCreatePlaylist != null) {
+			ctx.setVariable("errorCreatePlaylist", errorCreatePlaylist);
+		}
+		if (errorCreateSong != null) {
+			ctx.setVariable("errorCreateSong", errorCreateSong);
+		}
 		templateEngine.process(path, ctx, response.getWriter());
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		doGet(request, response);
+	}
+	
+	public void destroy() {
+		try {
+			ConnectionHandler.closeConnection(connection);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

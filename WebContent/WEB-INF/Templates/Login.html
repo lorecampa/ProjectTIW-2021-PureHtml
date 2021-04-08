@@ -8,15 +8,16 @@
 <body>
 	<h1>Welcome to Music Playlist application</h1>
 	
-	<span th:text = "${LoginAfter}"> </span>
-	<form method= "post" action="/MusicPlaylist/SubmitLogin">
+	<p style="color:red" th:text=" ${logout}">logout succesfully</p>
+	
+	<form method= "post" th:action="@{/SubmitLogin}">
 		<label>Username <input name = "username" type="text" required></label><br>
 		<label>Password <input name = "password" type = "password" required></label><br>
 		
 		<input name = "login" type = "submit">
 	</form>
 	
-	<br> <a href= "/MusicPlaylist/Templates/Register.html">Are you still not registered? Do it now</a>
+	<br> <a th:href="@{/SubmitRegistration}">Are you still not registered? Do it now</a>
 
 	
 </body>

@@ -9,7 +9,9 @@ public class Song{
 	private Integer idAlbum;
 	
 	
-	
+	public Song() {
+		super();
+	}
 	public Song(String title, String imageUrl, String songUrl, Integer idCreator, Integer idAlbum) {
 		super();
 		this.id = null;
@@ -26,6 +28,12 @@ public class Song{
 		this.title = title;
 		this.imageUrl = imageUrl;
 		this.songUrl = songUrl;
+		this.idCreator = idCreator;
+		this.idAlbum = idAlbum;
+	}
+	public Song(String title, Integer idCreator, Integer idAlbum) {
+		super();
+		this.title = title;
 		this.idCreator = idCreator;
 		this.idAlbum = idAlbum;
 	}

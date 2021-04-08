@@ -3,6 +3,12 @@ package it.polimi.tiw.beans;
 
 
 public class User{
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", username=" + username + ", email=" + email + ", password=" + password + ", name="
+				+ name + ", surname=" + surname + "]";
+	}
+
 	private Integer id;
 	private String username;
 	private String email;

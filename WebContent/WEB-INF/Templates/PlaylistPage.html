@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Playlists</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+<body>
+	<h1 th:text="'Playlist: '+ ${playlist.title}">Playlist:  NamePlaylist</h1>
+	
+	<table border="1">
+		
+		<tbody>
+			
+			<tr>
+				<td  th:each= "song: ${songs}" th:text = "${song.title}">Title1</td>
+			</tr>
+
+			<tr>
+			 	<td th:each= "prova: ${songs}">
+			 	<img th:attr="src = ${prova.imageUrl}" th:alt="'Image ' +${prova.imageUrl}" width="20" height="40">
+			 	</td>
+			</tr>
+			
+		</tbody>
+	</table>
+	
+	<h1>Add Song to Playlist</h1>
+	
+	<form method= "POST" th:action="@{/AddSongToPlaylist(idPlaylist=${playlist.id})}">
+		<label>Songs created</label>
+		<select name= "songs" th:remove = "all-but-first" required>
+			<option th:each= "song: ${userSongsSelection}" th:value= "${song.id}" th:text ="${song.title}" > Title Song</option>
+			<option>Like a Rolling Stone</option>
+			<option>Imagine</option>
+		</select><br>
+		<input value = "add to playlist" type = "submit">
+	</form>
+	
+	
+
+</body>
+</html>

@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import it.polimi.tiw.beans.Album;
+import it.polimi.tiw.beans.Genre;
+import it.polimi.tiw.beans.Song;
 
 
 public class AlbumDAO {
@@ -15,9 +17,6 @@ public class AlbumDAO {
 	}
 	
 	
-	//come si fa a gestire i casi in cui uno crea un album e subito uno sta facendo il find Id ma non lo trova
-	//cioè come si gestisce la concorrenza in questi casi?
-	//ragionarci con calma
 	public int findAlbumId(Album album) throws SQLException {
 		int id = -1;
 		String query = "SELECT id FROM MusicPlaylistdb.Album WHERE title = ? && interpreter = ? && year = ? && genre = ?";
@@ -31,8 +30,8 @@ public class AlbumDAO {
 			pstatement.setString(4, album.getGenre().getDisplayName());
 			result = pstatement.executeQuery();
 			
-			while(result.next()) {
-				id = result.getInt("id");		
+			if (result.next()) {
+				id = result.getInt("id");
 			}
 
 		} catch (SQLException e) {
@@ -57,9 +56,11 @@ public class AlbumDAO {
 	
 	}
 	
+
+	
 	public int createAlbum(Album album) throws SQLException {
 		int code = 0;
-		String query = "INSERT INTO `MusicPlaylistdb`.`Album` (`title`, `interpreter`, `year`, `genre`) VALUES (?, ?, ?, ?)";
+		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Album` (`title`, `interpreter`, `year`, `genre`) VALUES (?, ?, ?, ?)";
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);
@@ -82,6 +83,50 @@ public class AlbumDAO {
 		return code;
 		
 		
+	}
+	
+	
+	//non serve
+	public Album findAlumById(int albumId) throws SQLException {
+		Album album = new Album();
+		String query = "SELECT * FROM MusicPlaylistdb.Album WHERE id = ?";
+		ResultSet result = null;
+		PreparedStatement pstatement = null;
+		try {
+			pstatement = con.prepareStatement(query);
+			pstatement.setInt(1, albumId);
+			result = pstatement.executeQuery();
+			
+			//devo controllare che il risultato sia unico?? per me no
+			while(result.next()) {
+				album.setId(albumId);
+				album.setTitle(result.getString("title"));
+				album.setInterpreter(result.getString("interpreter"));
+				album.setYear(result.getShort("year"));
+				Genre genre = Genre.fromString(result.getString("genre"));
+				album.setGenre(genre);
+				
+			}
+
+		} catch (SQLException e) {
+			throw new SQLException(e);
+		} finally {
+			try {
+				if (result != null) {
+					result.close();
+				}
+			} catch (Exception e1) {
+				throw new SQLException("Cannot close result");
+			}
+			try {
+				if (pstatement != null) {
+					pstatement.close();
+				}
+			} catch (Exception e1) {
+				throw new SQLException("Cannot close statement");
+			}
+		}
+		return album;
 	}
 		
 	

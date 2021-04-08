@@ -7,6 +7,9 @@ public class Album {
 	private short year;
 	private Genre genre;
 	
+	public Album() {
+		super();
+	}
 
 	public Album(int id, String title, String interpreter, short year, Genre genre) {
 		super();

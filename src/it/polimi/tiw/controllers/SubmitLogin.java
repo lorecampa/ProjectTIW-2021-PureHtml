@@ -1,27 +1,25 @@
 package it.polimi.tiw.controllers;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.SessionControlHandler;
+import it.polimi.tiw.utils.TymeleafHandler;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.UnavailableException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
+import org.thymeleaf.context.WebContext;
 
+import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.UserDAO;
-/**
- * Servlet implementation class SubmitLogin
- */
+
 @WebServlet("/SubmitLogin")
 public class SubmitLogin extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -32,92 +30,117 @@ public class SubmitLogin extends HttpServlet {
   
     public SubmitLogin() {
         super();
-        // TODO Auto-generated constructor stub
+
     }
     public void init() throws ServletException {
     	ServletContext servletContext = getServletContext();
-		ServletContextTemplateResolver templateResolver = new ServletContextTemplateResolver(servletContext);
-		templateResolver.setTemplateMode(TemplateMode.HTML);
-		this.templateEngine = new TemplateEngine();
-		this.templateEngine.setTemplateResolver(templateResolver);
-		templateResolver.setSuffix(".html");
-		try {
-			ServletContext context = getServletContext();
-			String driver = context.getInitParameter("dbDriver");
-			String url = context.getInitParameter("dbUrl");
-			String user = context.getInitParameter("dbUser");
-			String password = context.getInitParameter("dbPassword");
-			Class.forName(driver);
-			connection = DriverManager.getConnection(url, user, password);
-
-		} catch (ClassNotFoundException e) {
-			throw new UnavailableException("Can't load database driver");
-		} catch (SQLException e) {
-			throw new UnavailableException("Couldn't get db connection");
-		}
-		
+    	connection = ConnectionHandler.getConnection(servletContext);
+		this.templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
 	}
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		String path;
 		HttpSession session = request.getSession(false);
-		if (session == null) {
-			response.sendRedirect("Templates/Login.html");
-			return;
+		if (session == null || session.getAttribute("user") == null) {
+			String msg = request.getParameter("logout");
+			//session's over
+			path = "/WEB-INF/Templates/Login.html";
+			ServletContext servletContext = getServletContext();
+			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+			ctx.setVariable("logout", msg);
+			templateEngine.process(path, ctx, response.getWriter());
+		}else {
+			//otherwise go to home page
+			path = getServletContext().getContextPath() + "/GetHomePage";
+			response.sendRedirect(path);
 		}
 		
-		response.sendRedirect("GetHomePage");
-	
 		
-
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
-		int idUser = 0;
-		boolean isPasswordCorrect = false;
-		UserDAO userDAO = new UserDAO(connection);
-		try {
-			idUser = userDAO.findIdOfUser(username);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		System.out.println("Userid: "+ idUser);
-		if (idUser == -1) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "User not found");
+		
+		if (username == null || username.isEmpty() ||
+				password == null || password.isEmpty()) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad Login parametres");
+			return;
 		}
 		
+		//we want to control if the password is not correct or the user is still not registred
+		int idUser = 0;
+		UserDAO userDAO = new UserDAO(connection);
+		try {
+			idUser = userDAO.findIdOfUserByUsername(username);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error finding userId information");
+			return;
+
+		}
+		
+		
+		String path = getServletContext().getContextPath();
+		if (idUser == -1) {
+			//username not present in db
+			ServletContext servletContext = getServletContext();
+			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+			ctx.setVariable("usernameError", "Incorrect username");
+			path += "/Templates/Login.html";
+			templateEngine.process(path, ctx, response.getWriter());
+			
+		}
+		
+		boolean isPasswordCorrect = false;
 		try {
 			isPasswordCorrect = userDAO.isPasswordCorrect(idUser, password);
 			
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error validating user: "+username+" password");
+			return;
 		}
 		if(!isPasswordCorrect) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Password is not correct");
+			//password not correct
+			ServletContext servletContext = getServletContext();
+			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+			ctx.setVariable("passwordError", "Incorrect password");
+			path += "/WEB-INF/Templates/Login.html";
+			templateEngine.process(path, ctx, response.getWriter());
 		}
 		
-		System.out.println("idUser: "+idUser);
-		System.out.println("Username: " + username);
-		System.out.println("Password: "+ password);
+		//retrieve user bean
+		User user = null;
+		try {
+			user = userDAO.findUserById(idUser);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving user information");
+		}
 		
+		if (user == null) {
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot create user bean from db");
+			return;
+		}
+		
+		//adding user to session
 		HttpSession session = request.getSession(true);
-		session.setAttribute("idUser", idUser);
-		
-		response.sendRedirect(getServletContext().getContextPath() + "/GetHomePage");
-		
+		session.setAttribute("user", user);
+		response.sendRedirect(path + "/GetHomePage");
 		
 		
 		
-		
+	}
+	
+	public void destroy() {
+		try {
+			ConnectionHandler.closeConnection(connection);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

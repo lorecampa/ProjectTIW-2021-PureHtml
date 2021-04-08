@@ -29,7 +29,7 @@
   
   <session-config>
         <session-timeout>60</session-timeout>
-	</session-config>
+</session-config>
   
   <welcome-file-list>
     <welcome-file>SubmitLogin</welcome-file>

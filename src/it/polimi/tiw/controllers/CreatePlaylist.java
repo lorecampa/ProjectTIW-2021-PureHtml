@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.UnavailableException;
@@ -18,11 +20,14 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 
+import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.PlaylistDAO;
+import it.polimi.tiw.exceptions.PlaylistException;
+import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.SessionControlHandler;
+import it.polimi.tiw.utils.TymeleafHandler;
 
-/**
- * Servlet implementation class CreatePlaylist
- */
+
 @WebServlet("/CreatePlaylist")
 public class CreatePlaylist extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -30,65 +35,58 @@ public class CreatePlaylist extends HttpServlet {
 	private TemplateEngine templateEngine;
 	
        
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+   
     public CreatePlaylist() {
         super();
-        // TODO Auto-generated constructor stub
     }
     public void init() throws ServletException {
     	ServletContext servletContext = getServletContext();
-		ServletContextTemplateResolver templateResolver = new ServletContextTemplateResolver(servletContext);
-		templateResolver.setTemplateMode(TemplateMode.HTML);
-		this.templateEngine = new TemplateEngine();
-		this.templateEngine.setTemplateResolver(templateResolver);
-		templateResolver.setSuffix(".html");
-		try {
-			ServletContext context = getServletContext();
-			String driver = context.getInitParameter("dbDriver");
-			String url = context.getInitParameter("dbUrl");
-			String user = context.getInitParameter("dbUser");
-			String password = context.getInitParameter("dbPassword");
-			Class.forName(driver);
-			connection = DriverManager.getConnection(url, user, password);
-
-		} catch (ClassNotFoundException e) {
-			throw new UnavailableException("Can't load database driver");
-		} catch (SQLException e) {
-			throw new UnavailableException("Couldn't get db connection");
-		}
+    	connection = ConnectionHandler.getConnection(servletContext);
+		this.templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
 		
 	}
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
+	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		//nothing
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
+	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String playlistName = request.getParameter("name");
-		HttpSession session = request.getSession();
-		if (session == null) {
-			response.sendRedirect(getServletContext().getContextPath() + "/Templates/Login.html");
-		}
-		int idUser = (int) session.getAttribute("idUser");
+		//session control
+		if(!SessionControlHandler.isSessionValidate(request, response))	return;
 		
-		if (playlistName == null || playlistName.isEmpty()) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad parametres");
+		HttpSession session = request.getSession();
+		User user = (User) session.getAttribute("user");
+		
+		String playlistName = request.getParameter("name");
+		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
+		
+		//check if the user has already created a playlist with this name
+		boolean isPlaylistAlreadyCreated = true;
+		try {
+			isPlaylistAlreadyCreated = playlistDAO.isPlaylistAlreadyCreated(playlistName, user.getId());
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		
+		if (playlistName == null || playlistName.isEmpty() || isPlaylistAlreadyCreated) {
+			String msg;
+			if (isPlaylistAlreadyCreated) msg = "Playlist already present";
+			else msg = "Missing playlist name";
+			
+			String path = "GetHomePage";
+			response.sendRedirect(path + "?errorCreatePlaylist="+msg);
+			
 			return;
 		}
 		
-		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
+		
 		int created = 0;
 		try {
-			created = playlistDAO.createPlaylist(playlistName, idUser);
+			//return 0 if it update nothing
+			created = playlistDAO.createPlaylist(playlistName, user.getId());
 		} catch (SQLException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating playlist");
@@ -100,8 +98,16 @@ public class CreatePlaylist extends HttpServlet {
 			return;
 		}
 		
-		response.sendRedirect(getServletContext().getContextPath() + "/GetHomePage");
+		response.sendRedirect("GetHomePage");
 		
+	}
+	
+	public void destroy() {
+		try {
+			ConnectionHandler.closeConnection(connection);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -11,7 +11,8 @@ public enum Genre {
 	REGGAE("Reggae"),
 	HIPHOP("Hip Hop"),
 	PUNK("Punk"),
-	POLKA("Polka");
+	POLKA("Polka"),
+	NOT_FOUND("Not found");
 	
 	private String displayName;
 
@@ -29,7 +30,7 @@ public enum Genre {
 				return genre;
 			}
 		}
-		return null;
+		return Genre.NOT_FOUND;
 	}
 	
 

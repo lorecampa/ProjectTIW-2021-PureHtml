@@ -16,7 +16,7 @@ public class UserDAO {
 	}
 	
 	
-	public int findIdOfUser(String username) throws SQLException {
+	public int findIdOfUserByUsername(String username) throws SQLException {
 		int id;
 		String query = "SELECT id FROM MusicPlaylistdb.user WHERE username = ?";
 		ResultSet result = null;
@@ -54,14 +54,14 @@ public class UserDAO {
 		return id;
 	}
 	
-	public boolean isPasswordCorrect(int id, String password) throws SQLException {
+	public boolean isPasswordCorrect(int idUser, String password) throws SQLException {
 		boolean queryResult;
 		String query = "SELECT EXISTS (SELECT * FROM user WHERE id = ? and password = ?)";
 		ResultSet result = null;
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);
-			pstatement.setInt(1, id);
+			pstatement.setInt(1, idUser);
 			pstatement.setString(2, password);
 			result = pstatement.executeQuery();
 			result.next();
@@ -94,6 +94,9 @@ public class UserDAO {
 		
 		return queryResult;
 	}
+	
+	
+	
 	
 	public int createUser(User user) throws SQLException {
 		int code = 0;
@@ -134,12 +137,13 @@ public class UserDAO {
 			pstatement.setInt(1, idUser);
 			result = pstatement.executeQuery();
 			if(result.next()) {
+				int id = result.getInt("id");
 				String username = result.getString("username");
 				String email = result.getString("email");
 				String password = result.getString("password");
 				String name = result.getString("name");
 				String surname = result.getString("surname");
-				user = new User(username, email, password, name, surname);
+				user = new User(id, username, email, password, name, surname);
 			}else {
 				user = null;
 			}

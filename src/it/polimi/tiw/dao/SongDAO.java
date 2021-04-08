@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+
 import it.polimi.tiw.beans.Song;
 
 public class SongDAO {
@@ -56,15 +58,57 @@ public class SongDAO {
 	
 	}
 	
-	public int createInitialSong(Song song) throws SQLException {
+	public Song findSongById(int songId) throws SQLException {
+		Song song = new Song();
+		String query = "SELECT * FROM MusicPlaylistdb.Song WHERE id = ?";
+		ResultSet result = null;
+		PreparedStatement pstatement = null;
+		try {
+			pstatement = con.prepareStatement(query);
+			pstatement.setInt(1, songId);
+			result = pstatement.executeQuery();
+			
+			//devo controllare che il risultato sia unico?? per me no
+			while(result.next()) {
+				song.setId(songId);
+				song.setTitle(result.getString("title"));
+				song.setImageUrl(result.getString("imageUrl"));
+				song.setSongUrl(result.getString("songUrl"));
+				song.setIdCreator(result.getInt("idCreator"));
+				song.setIdAlbum(result.getInt("idAlbum"));
+				
+			}
+
+		} catch (SQLException e) {
+			throw new SQLException(e);
+		} finally {
+			try {
+				if (result != null) {
+					result.close();
+				}
+			} catch (Exception e1) {
+				throw new SQLException("Cannot close result");
+			}
+			try {
+				if (pstatement != null) {
+					pstatement.close();
+				}
+			} catch (Exception e1) {
+				throw new SQLException("Cannot close statement");
+			}
+		}
+		return song;
+	}
+	
+	public int createSong(Song song) throws SQLException {
 		int code = 0;
-		String query = "INSERT INTO `MusicPlaylistdb`.`Song` (`title`, `imageUrl`, `songUrl`, `idCreator`, `idAlbum`) VALUES (?, ?, ?, ?, ?)";
+		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Song` (`title`, `imageUrl`, `songUrl`, `idCreator`, `idAlbum`) VALUES (?, ?, ?, ?, ?)";
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);
 			pstatement.setString(1, song.getTitle());
-			pstatement.setString(2, song.getImageUrl());
-			pstatement.setString(3,  song.getSongUrl());
+			pstatement.setString(2, "LAZY_LOADING");
+			pstatement.setString(3,  "LAZY_LOADING");
 			pstatement.setInt(4, song.getIdCreator());
 			pstatement.setInt(5, song.getIdAlbum());
 			code = pstatement.executeUpdate();
@@ -125,6 +169,52 @@ public class SongDAO {
 		}
 		return code;
 	}
+	
+	public ArrayList<Song> findAllSongByUserId(int userId) throws SQLException{
+		ArrayList<Song> songs = new ArrayList<>();
+		String query = "SELECT * FROM MusicPlaylistdb.Song WHERE idCreator = ?";
+		ResultSet result = null;
+		PreparedStatement pstatement = null;
+		try {
+			pstatement = con.prepareStatement(query);
+			pstatement.setInt(1, userId);
+			result = pstatement.executeQuery();
+			
+			while(result.next()) {
+				Song song = new Song();
+				song.setId(result.getInt("id"));
+				song.setTitle(result.getString("title"));
+				song.setImageUrl(result.getString("imageUrl"));
+				song.setSongUrl(result.getString("songUrl"));
+				song.setIdCreator(userId);
+				song.setIdAlbum(result.getInt("idAlbum"));
+				
+				songs.add(song);
+			}
+
+		} catch (SQLException e) {
+			throw new SQLException(e);
+		} finally {
+			try {
+				if (result != null) {
+					result.close();
+				}
+			} catch (Exception e1) {
+				throw new SQLException("Cannot close result");
+			}
+			try {
+				if (pstatement != null) {
+					pstatement.close();
+				}
+			} catch (Exception e1) {
+				throw new SQLException("Cannot close statement");
+			}
+		}
+		
+		return songs;
+	}
+	
+	
 	
 
 
