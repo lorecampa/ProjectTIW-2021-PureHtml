@@ -54,13 +54,16 @@ public class AddSongToPlaylist extends HttpServlet {
 		
 		String idSongString = request.getParameter("songs");
 		String idPlaylistString = request.getParameter("idPlaylist");
-		
+		String currentSlideString = request.getParameter("currentSlide");
+
 		int idSong;
 		int idPlaylist;
-		
+		Integer currentSlide;
+
 		try {
 			idSong = Integer.parseInt(idSongString);
 			idPlaylist = Integer.parseInt(idPlaylistString);
+			currentSlide = Integer.parseInt(currentSlideString);
 			
 		}catch(NumberFormatException e) {
 			e.printStackTrace();
@@ -84,7 +87,7 @@ public class AddSongToPlaylist extends HttpServlet {
 		if (matchCreated == 0) {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Match was already present");
 		}else {
-			response.sendRedirect("GetPlaylist?idPlaylist="+idPlaylist);
+			response.sendRedirect("GetPlaylist?idPlaylist="+idPlaylist+"&currentSlide="+currentSlide);
 		}
 		
 		

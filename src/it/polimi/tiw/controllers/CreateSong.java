@@ -200,22 +200,26 @@ public class CreateSong extends HttpServlet {
 		
 		String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
 		int indexImage = imageFileName.lastIndexOf('.');
-		//int imageHash = imageFileName.hashCode();
 		String imageExt = "";
 		
 		String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
-		//int audioHash = audioFileName.hashCode();
 		int indexAudio = audioFileName.lastIndexOf('.');
 		String audioExt = "";
 		
 		imageExt = imageFileName.substring(indexImage);
 		audioExt = audioFileName.substring(indexAudio);
 		
-		
+		String imageId = "" + user.getId() + song.getId() + album.getId() + imageExt;
+		String audioId = "" + user.getId() + song.getId() + album.getId() + audioExt;
 		
 		//imagePath and audioPath refers to the path initialized in the init part
-		String imageOutputPath = imagePath + "/" + user.getId() + song.getId() + album.getId() + imageExt;
-		String audioOutputPath = audioPath + "/" + user.getId() + song.getId() + album.getId() + audioExt;
+		String imageOutputPath = imagePath + imageId;
+		String audioOutputPath = audioPath + audioId;
+		
+		System.out.println("ImageOutputPath: " + imageOutputPath);
+		System.out.println("AudioOutputPath: " + audioOutputPath);
+
+		
 		
 		
 		File imageFile = new File(imageOutputPath);
@@ -258,8 +262,8 @@ public class CreateSong extends HttpServlet {
 			
 		}
 		
-		song.setImageUrl(imageOutputPath);
-		song.setSongUrl(audioOutputPath);
+		song.setImageUrl(imageId);
+		song.setSongUrl(audioId);
 		
 		
 		try {

@@ -12,7 +12,7 @@
 	<span th:text = ${album.year}> Year</span><br>
 	<span th:text = ${album.genre}> Genre</span><br>
 	 
-	<a th:href= "@{/GetPlaylist(idPlaylist = ${idPlaylist})}">return to playlist</a>
+	<a th:href= "@{/GetPlaylist(idPlaylist = ${idPlaylist}, currentSlide=${0})}">return to playlist</a>
 
 	
 </body>

@@ -28,4 +28,21 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.wst.jsdt.core.jsNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>Storing</name>
+			<type>2</type>
+			<location>/Users/lorecampa/Documents/eclipseStoring/MusicPlaylist</location>
+		</link>
+		<link>
+			<name>audio</name>
+			<type>2</type>
+			<location>/Users/lorecampa/Documents/eclipseStoring/MusicPlaylist/audio</location>
+		</link>
+		<link>
+			<name>images</name>
+			<type>2</type>
+			<location>/Users/lorecampa/Documents/eclipseStoring/MusicPlaylist/images</location>
+		</link>
+	</linkedResources>
 </projectDescription>

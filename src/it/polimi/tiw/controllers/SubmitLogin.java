@@ -83,13 +83,13 @@ public class SubmitLogin extends HttpServlet {
 		}
 		
 		
-		String path = getServletContext().getContextPath();
+		
 		if (idUser == -1) {
 			//username not present in db
 			ServletContext servletContext = getServletContext();
 			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-			ctx.setVariable("usernameError", "Incorrect username");
-			path += "/Templates/Login.html";
+			ctx.setVariable("logout", "Incorrect username");
+			String path = "/WEB-INF/Templates/Login.html";
 			templateEngine.process(path, ctx, response.getWriter());
 			return;
 			
@@ -109,7 +109,7 @@ public class SubmitLogin extends HttpServlet {
 			ServletContext servletContext = getServletContext();
 			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
 			ctx.setVariable("logout", "Incorrect password");
-			path += "/WEB-INF/Templates/Login.html";
+			String path = "/WEB-INF/Templates/Login.html";
 			templateEngine.process(path, ctx, response.getWriter());
 			return;
 		}
@@ -131,7 +131,7 @@ public class SubmitLogin extends HttpServlet {
 			//adding user to session
 			HttpSession session = request.getSession(true);
 			session.setAttribute("user", user);
-			response.sendRedirect(path + "/GetHomePage");
+			response.sendRedirect("GetHomePage");
 		}
 		
 		

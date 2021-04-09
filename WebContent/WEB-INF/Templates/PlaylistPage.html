@@ -21,7 +21,7 @@
 
 			<tr>
 			 	<td th:each= "prova: ${songs}">
-			 	<img th:src="${prova.imageUrl}" th:alt="'Image ' +${prova.imageUrl}" width="20" height="40">
+			 	<img  th:src="'ShowImage/' + ${prova.imageUrl}" th:alt="${prova.imageUrl}" width="150" height="100">
 			 	</td>
 			</tr>
 			
@@ -29,10 +29,19 @@
 	</table>
 	
 	
+	<form th:if = "${isPrevActive}" method= "POST" th:action="@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide = ${{currentSlide - 1}})}">
+		<input value = "Prev" type = "submit">	
+	</form>
+	
+	<form th:if = "${isNextActive}" method= "POST" th:action="@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide = ${{currentSlide+1}})}">
+		<input value = "Next" type = "submit">	
+	</form>
+	
+	
 	
 	<h1>Add Song to Playlist</h1>
 	
-	<form method= "POST" th:action="@{/AddSongToPlaylist(idPlaylist=${playlist.id})}">
+	<form method= "POST" th:action="@{/AddSongToPlaylist(idPlaylist=${playlist.id}, currentSlide = ${currentSlide})}">
 		<label>Songs created</label>
 		<select name= "songs" th:remove = "all-but-first" required>
 			<option th:each= "song: ${userSongsSelection}" th:value= "${song.id}" th:text ="${song.title}" > Title Song</option>
@@ -45,7 +54,7 @@
 	<br>
 	<br>
 	<a th:href= "@{/GetHomePage}">go back to home page</a>
-	
+
 	
 
 </body>

@@ -21,7 +21,7 @@
 		<tbody th:remove= "all-but-first">
 			<tr th:each= "playlist : ${playlists}">
 				<td> 
-					<a th:href= "@{/GetPlaylist(idPlaylist = ${playlist.id})}">
+					<a th:href= "@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide=${0})}">
 					<span th:text = "${playlist.title}">Title</span>
 					</a>
 				</td>

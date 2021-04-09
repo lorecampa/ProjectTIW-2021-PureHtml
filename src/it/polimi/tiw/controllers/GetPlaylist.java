@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.UnavailableException;
@@ -16,12 +15,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
-
 import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Playlist;
 import it.polimi.tiw.beans.Song;
@@ -33,12 +30,15 @@ import it.polimi.tiw.dao.SongDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
+import it.polimi.tiw.utils.*;
 
 
 @WebServlet("/GetPlaylist")
 public class GetPlaylist extends HttpServlet {
 	private Connection connection = null;
 	private TemplateEngine templateEngine;
+	public final int NUM_SLIDE_SONG = 5;
+
 	   
     
     public GetPlaylist() {
@@ -61,13 +61,20 @@ public class GetPlaylist extends HttpServlet {
 		
 		//getting id playlist selected
 		String idPlaylistString = request.getParameter("idPlaylist");
+		String currentSlideString = request.getParameter("currentSlide");
+		
 		int idPlaylist;
+		Integer currentSlide;
 		try {
 			idPlaylist = Integer.parseInt(idPlaylistString);
+			currentSlide = Integer.parseInt(currentSlideString);
 		}catch (NumberFormatException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing idPlaylist query string parameter");
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing idPlaylist or currentSlide query string parameter");
 			return;
 		}
+		
+		
+		
 				 
 		//finding playlist
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
@@ -81,7 +88,8 @@ public class GetPlaylist extends HttpServlet {
 		}
 		
 		//control that the playlist belongs to the user session
-		if(playlist == null || !(playlist.getIdCreator() == user.getId())) {
+		//you are trying to imbrogliare--> guardare se si può fare un metodo per non farlo ripetere sempre
+		if(playlist == null || !(playlist.getIdCreator() == user.getId()) || currentSlide < 0) {
 			session.invalidate();
 			String path = "SubmitLogin";
 			String msg = "You are trying to access wrong information. Login again to identify yourself ";
@@ -136,6 +144,40 @@ public class GetPlaylist extends HttpServlet {
 		}		
 		
 		
+		int sizeSongs = songs.size();
+		//control currentSlide correctness
+		int div = (sizeSongs / NUM_SLIDE_SONG);
+		if (currentSlide < 0 || currentSlide > div) {
+			session.invalidate();
+			String path = "SubmitLogin";
+			String msg = "You are trying to access wrong information. Login again to identify yourself ";
+			response.sendRedirect(path+"?logout=" + msg);
+			return;
+		}
+		
+		int fromIndex = currentSlide * NUM_SLIDE_SONG;
+		int toIndex = fromIndex + 5;
+		boolean isPrevActive = false;
+		boolean isNextActive = false;
+		
+		if (sizeSongs <= toIndex) {
+			toIndex = sizeSongs;
+			isNextActive = false;
+		}else {
+			isNextActive = true;
+		}
+	
+		if(currentSlide != 0) {
+			isPrevActive = true;
+		}
+		
+		System.out.println("From Index: "+ fromIndex);
+		System.out.println("To Index: "+ toIndex);
+		System.out.println("prevActive: "+ isPrevActive);
+		System.out.println("nextActive: "+ isNextActive);
+		System.out.println("songsSize: "+ songs.size());
+
+
 		
 		
 		
@@ -144,7 +186,16 @@ public class GetPlaylist extends HttpServlet {
 		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
 		ctx.setVariable("playlist", playlist);
 		ctx.setVariable("userSongsSelection", userSongsSelection);
-		ctx.setVariable("songs", songs);
+		ctx.setVariable("songs", songs.subList(fromIndex, toIndex));
+		ctx.setVariable("isNextActive", isNextActive);
+		ctx.setVariable("isPrevActive", isPrevActive);
+		ctx.setVariable("currentSlide", currentSlide);
+
+		
+
+
+		
+	
 		
 		templateEngine.process(path, ctx, response.getWriter());
 		

@@ -1,0 +1,10 @@
+controllare sempre prima  di usare ogni servlet se la sessione utente è valida
+
+controllare sempre che gli id selezionati delle playlist appartengono all'utente,
+controlli che si possono fare anche a lato db. Pensare un giorno a tutti controlli di questo tipo
+
+
+mettere in UserDAO checkCredentials(username, password) e nel caso fare la redirect al login invece di mandare un errore
+
+
+mettere in sessione l'oggetto bean user invece dell'id o pensarci prima di farlo
