@@ -86,9 +86,9 @@ public class AlbumDAO {
 	}
 	
 	
-	//non serve
+	//return null if there is no album
 	public Album findAlumById(int albumId) throws SQLException {
-		Album album = new Album();
+		Album album = null;
 		String query = "SELECT * FROM MusicPlaylistdb.Album WHERE id = ?";
 		ResultSet result = null;
 		PreparedStatement pstatement = null;
@@ -97,15 +97,14 @@ public class AlbumDAO {
 			pstatement.setInt(1, albumId);
 			result = pstatement.executeQuery();
 			
-			//devo controllare che il risultato sia unico?? per me no
-			while(result.next()) {
+			if(result.next()) {
+				album = new Album();
 				album.setId(albumId);
 				album.setTitle(result.getString("title"));
 				album.setInterpreter(result.getString("interpreter"));
 				album.setYear(result.getShort("year"));
 				Genre genre = Genre.fromString(result.getString("genre"));
 				album.setGenre(genre);
-				
 			}
 
 		} catch (SQLException e) {

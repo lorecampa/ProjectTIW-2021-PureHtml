@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Player</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+<body>
+	<span th:text = ${song.title}> Title song </span><br>
+	<span th:text = ${album.title}> Album </span><br>
+	<span th:text = ${album.interpreter}> Interpreter</span><br>
+	<span th:text = ${album.year}> Year</span><br>
+	<span th:text = ${album.genre}> Genre</span><br>
+	 
+	<a th:href= "@{/GetPlaylist(idPlaylist = ${idPlaylist})}">return to playlist</a>
+
+	
+</body>
+</html>

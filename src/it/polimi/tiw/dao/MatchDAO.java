@@ -56,7 +56,6 @@ public class MatchDAO {
 			result = pstatement.executeQuery();
 			
 			int id;
-			Timestamp timestamp;
 			while(result.next()) {
 				id = result.getInt("idSong");
 				songIds.add(id);

@@ -8,9 +8,9 @@
 <body>
 	<h1 th:text="'Welcome '+ ${session.user.username}">Welcome User</h1>
 	
+	<p th:if = "${playlists.isEmpty()}" th:text ="'There are not playlists yet'">Label no playlists </p>
 	
-	
-	<table border="1">
+	<table th:if = "${not playlists.isEmpty()}" border="1">
 		<thead>
 			<tr>
 				<th>Your Playlists</th>
@@ -49,8 +49,8 @@
 	<h1>Create Playlist</h1>
 		
 	<form method= "POST" th:action="@{/CreatePlaylist}">
-		<label>Title </label><input name = "name" type="text" required><br>
 		<p style="color:red" th:text=" ${errorCreatePlaylist}">error</p>
+		<label>Title </label><input name = "name" type="text" required><br>
 		<input value = "create" type = "submit">
 	</form>
 	

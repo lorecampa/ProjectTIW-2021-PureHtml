@@ -8,6 +8,8 @@
 	<h1>Registration</h1>
 	
 	<form method= "post" th:action="@{/SubmitRegistration}">
+		<p style="color:red" th:text=" ${registrationError}">error registration</p>
+		
 		<label>Username <input name = "username" type="text" required></label><br>
 		
 		<label>Email <input name = "email" type="text" required></label><br>

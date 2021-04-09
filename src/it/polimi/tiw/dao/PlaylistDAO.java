@@ -18,7 +18,7 @@ public class PlaylistDAO {
 	//return 0 if it doesn't modify anything
 	public int createPlaylist(String title, int idCreator) throws SQLException {
 		int code = 0;
-		String query = "INSERT into MusicPlaylistdb.Playlist (title, idCreator)   VALUES(?, ?)";
+		String query = "INSERT IGNORE INTO MusicPlaylistdb.Playlist (title, idCreator)   VALUES(?, ?)";
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);

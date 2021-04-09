@@ -91,6 +91,7 @@ public class SubmitLogin extends HttpServlet {
 			ctx.setVariable("usernameError", "Incorrect username");
 			path += "/Templates/Login.html";
 			templateEngine.process(path, ctx, response.getWriter());
+			return;
 			
 		}
 		
@@ -107,9 +108,10 @@ public class SubmitLogin extends HttpServlet {
 			//password not correct
 			ServletContext servletContext = getServletContext();
 			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-			ctx.setVariable("passwordError", "Incorrect password");
+			ctx.setVariable("logout", "Incorrect password");
 			path += "/WEB-INF/Templates/Login.html";
 			templateEngine.process(path, ctx, response.getWriter());
+			return;
 		}
 		
 		//retrieve user bean
@@ -119,17 +121,18 @@ public class SubmitLogin extends HttpServlet {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving user information");
+			return;
 		}
 		
 		if (user == null) {
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot create user bean from db");
-			return;
+			
+		}else {
+			//adding user to session
+			HttpSession session = request.getSession(true);
+			session.setAttribute("user", user);
+			response.sendRedirect(path + "/GetHomePage");
 		}
-		
-		//adding user to session
-		HttpSession session = request.getSession(true);
-		session.setAttribute("user", user);
-		response.sendRedirect(path + "/GetHomePage");
 		
 		
 		

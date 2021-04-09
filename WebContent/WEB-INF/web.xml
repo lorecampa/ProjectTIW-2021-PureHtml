@@ -20,16 +20,17 @@
   
   <context-param>
     <param-name>imagePath</param-name>
-    <param-value>/Users/lorecampa/eclipseStoring/MusicPlaylist/images</param-value>
+    <param-value>/Users/lorecampa/Documents/eclipseStoring/MusicPlaylist/images</param-value>
   </context-param>
   <context-param>
     <param-name>audioPath</param-name>
-    <param-value>/Users/lorecampa/eclipseStoring/MusicPlaylist/audio</param-value>
+    <param-value>/Users/lorecampa/Documents/eclipseStoring/MusicPlaylist/audio</param-value>
+    
   </context-param>
   
   <session-config>
-        <session-timeout>60</session-timeout>
-</session-config>
+  	<session-timeout>60</session-timeout>
+  </session-config>
   
   <welcome-file-list>
     <welcome-file>SubmitLogin</welcome-file>

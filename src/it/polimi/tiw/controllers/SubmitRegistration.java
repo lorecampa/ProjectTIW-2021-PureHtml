@@ -60,7 +60,7 @@ public class SubmitRegistration extends HttpServlet {
 		String password = request.getParameter("password");
 		String name = request.getParameter("name");
 		String surname = request.getParameter("surname");
-
+		
 		
 		//need to control if they are correct
 		if(username == null || username.isEmpty() || email == null || email.isEmpty() ||
@@ -71,15 +71,25 @@ public class SubmitRegistration extends HttpServlet {
 		}
 		
 		if (password.length() < 4) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Password size must be greater than 3");
+			//return error to Registration.html
+			ServletContext servletContext = getServletContext();
+			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+			String msg = "Password must be greater or equals than 4";
+			ctx.setVariable("registrationError", msg);
+			String path = "/WEB-INF/Templates/Register.html";
+			templateEngine.process(path, ctx, response.getWriter());
 			return;
+			
+			//guardare quando fare il return durante il forward dei template
 		}
 		
 		UserDAO userDAO = new UserDAO(connection);
 		User user = new User(username, email, password, name, surname);
 		
+		//creation user
 		int created = 0;
 		try {
+			//return 0 if the user is already creted (email is unique identifier)
 			created = userDAO.createUser(user);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -87,14 +97,17 @@ public class SubmitRegistration extends HttpServlet {
 			return;
 		}
 		
+		//redirect to submit login with message if we are registred
+		String path = "SubmitLogin";		
+		String msg;
 		if (created == 0) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "User was not created");
-			return;
+			msg = "You are already registred with the email: " + user.getEmail() + ". Login now!";			
+		}else {
+			msg = "Now you are registred! Login with the same credential";
 		}
 		
+		response.sendRedirect(path+"?logout=" + msg);
 		
-		
-		response.sendRedirect(getServletContext().getContextPath() + "/Templates/Login.html");
 		
 		
 	}

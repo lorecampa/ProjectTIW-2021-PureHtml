@@ -137,18 +137,17 @@ public class CreateSong extends HttpServlet {
 		Album album = new Album(albumTitle, interpreter, year, genre);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		
-		int created = 0;
+		int albumCreated;
 		try {
-			created = albumDAO.createAlbum(album);
+			//if albumCreated is 0 then it was already present in our database (title, interpreter, year, genre) is a unique constraint
+			albumCreated = albumDAO.createAlbum(album);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating album");
 			return;
 		}
 		
-		
-		
-		
+			
 		//now that album is created
 		try {
 			//find id of album
@@ -160,23 +159,24 @@ public class CreateSong extends HttpServlet {
 			return;
 		}
 		
+		
 		//create initial song		
 		Song song = new Song(title, user.getId(), album.getId());
 		SongDAO songDAO = new SongDAO(connection);
 		
 		
-		//si può fare anche la creazione come nell'album se si vuole -> pensarci
-		//control if the song already exsist
-		created = 0;
+		//create initial song
+		int songCreated;
 		try {
-			created = songDAO.createSong(song);
+			//return 0 if the song was already present (title, userId, albumId) is a unique constraint
+			songCreated = songDAO.createSong(song);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating initial song");
 			return;
 		}
 		
-		if (created == 0) {
+		if (songCreated == 0) {
 			//return error to home page
 			String msg = "Song already present in your list";
 			String path = "GetHomePage";
@@ -190,7 +190,7 @@ public class CreateSong extends HttpServlet {
 			song.setId(songDAO.findSongId(song));
 		} catch (SQLException e) {
 			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding song");
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding song after creation");
 			return;
 		}
 		
@@ -200,9 +200,11 @@ public class CreateSong extends HttpServlet {
 		
 		String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
 		int indexImage = imageFileName.lastIndexOf('.');
+		//int imageHash = imageFileName.hashCode();
 		String imageExt = "";
 		
 		String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
+		//int audioHash = audioFileName.hashCode();
 		int indexAudio = audioFileName.lastIndexOf('.');
 		String audioExt = "";
 		
@@ -212,8 +214,8 @@ public class CreateSong extends HttpServlet {
 		
 		
 		//imagePath and audioPath refers to the path initialized in the init part
-		String imageOutputPath = imagePath + "/" + user.getId() + "_" + song.getId() + "_" + album.getId() + "_" + new Timestamp(System.currentTimeMillis()) + imageExt;
-		String audioOutputPath = audioPath + "/" + user.getId() + "_" + song.getId() + "_" + album.getId() + "_" + new Timestamp(System.currentTimeMillis()) + audioExt;
+		String imageOutputPath = imagePath + "/" + user.getId() + song.getId() + album.getId() + imageExt;
+		String audioOutputPath = audioPath + "/" + user.getId() + song.getId() + album.getId() + audioExt;
 		
 		
 		File imageFile = new File(imageOutputPath);
@@ -229,9 +231,11 @@ public class CreateSong extends HttpServlet {
 				songDAO.removeInitialSong(song);
 			} catch (SQLException e1) {
 				e1.printStackTrace();
-				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue removing initial song");
+				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue removing initial song after error in saving image");
 				return;
 			}
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue saving image in: " + imagePath);
+			return;
 			
 		}
 		
@@ -246,18 +250,20 @@ public class CreateSong extends HttpServlet {
 				songDAO.removeInitialSong(song);
 			} catch (SQLException e1) {
 				e1.printStackTrace();
-				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue removing initial song");
+				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue removing initial song after error in saving audio");
 				return;
 			}
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error saving audio in: " + audioPath);
+			return;
 			
 		}
 		
 		song.setImageUrl(imageOutputPath);
 		song.setSongUrl(audioOutputPath);
 		
-		int update = 0;
+		
 		try {
-			update = songDAO.updateSongPath(song);
+			int update = songDAO.updateSongPath(song);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue updating song path files");
@@ -266,7 +272,9 @@ public class CreateSong extends HttpServlet {
 		
 		
 		
-		response.sendRedirect("GetHomePage");
+		String msg = "Song " + song.getTitle() + " created succesfully";
+		String path = "GetHomePage";
+		response.sendRedirect(path + "?errorCreateSong="+msg);
 		
 	}
 	

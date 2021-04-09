@@ -22,7 +22,6 @@ import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.PlaylistDAO;
-import it.polimi.tiw.exceptions.PlaylistException;
 import it.polimi.tiw.utils.ConnectionHandler;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
@@ -63,29 +62,18 @@ public class CreatePlaylist extends HttpServlet {
 		String playlistName = request.getParameter("name");
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		
-		//check if the user has already created a playlist with this name
-		boolean isPlaylistAlreadyCreated = true;
-		try {
-			isPlaylistAlreadyCreated = playlistDAO.isPlaylistAlreadyCreated(playlistName, user.getId());
-		} catch (SQLException e1) {
-			e1.printStackTrace();
-		}
 		
-		if (playlistName == null || playlistName.isEmpty() || isPlaylistAlreadyCreated) {
-			String msg;
-			if (isPlaylistAlreadyCreated) msg = "Playlist already present";
-			else msg = "Missing playlist name";
-			
-			String path = "GetHomePage";
-			response.sendRedirect(path + "?errorCreatePlaylist="+msg);
-			
+		
+		
+		if (playlistName == null || playlistName.isEmpty()) {
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Missing name playlist parameter");
 			return;
 		}
 		
 		
 		int created = 0;
 		try {
-			//return 0 if it update nothing
+			//return 0 if playlist is already present
 			created = playlistDAO.createPlaylist(playlistName, user.getId());
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -93,12 +81,14 @@ public class CreatePlaylist extends HttpServlet {
 			return;
 		}
 		
+		String path = "GetHomePage";
+		String msg = "";
 		if (created == 0) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Playlist was not created");
-			return;
+			msg += "?errorCreatePlaylist=Playlist already present in you list";	
 		}
+		response.sendRedirect("GetHomePage"+msg);
+
 		
-		response.sendRedirect("GetHomePage");
 		
 	}
 	

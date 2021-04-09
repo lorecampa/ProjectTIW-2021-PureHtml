@@ -21,57 +21,42 @@ import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 import it.polimi.tiw.beans.Match;
 import it.polimi.tiw.dao.MatchDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
-/**
- * Servlet implementation class AddSongToPlaylist
- */
+import it.polimi.tiw.utils.SessionControlHandler;
+import it.polimi.tiw.utils.TymeleafHandler;
+
 @WebServlet("/AddSongToPlaylist")
 public class AddSongToPlaylist extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
 	private TemplateEngine templateEngine;
 	   
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+    
     public AddSongToPlaylist() {
         super();
-        // TODO Auto-generated constructor stub
     }
     public void init() throws ServletException {
-    	connection = ConnectionHandler.getConnection(getServletContext());
-		ServletContext servletContext = getServletContext();
-		ServletContextTemplateResolver templateResolver = new ServletContextTemplateResolver(servletContext);
-		templateResolver.setTemplateMode(TemplateMode.HTML);
-		this.templateEngine = new TemplateEngine();
-		this.templateEngine.setTemplateResolver(templateResolver);
-		templateResolver.setSuffix(".html");
+    	ServletContext servletContext = getServletContext();
+    	connection = ConnectionHandler.getConnection(servletContext);
+		this.templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
 		
 	}
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
+	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
+	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		HttpSession session = request.getSession(false);
-		if (session == null) {
-			System.out.println("Session's over");
-			response.sendRedirect("SubmitLogin");
-		}
-		int idUser = (int) session.getAttribute("idUser");
+		//session control
+		if(!SessionControlHandler.isSessionValidate(request, response))	return;
+		HttpSession session = request.getSession();
 		
 		String idSongString = request.getParameter("songs");
 		String idPlaylistString = request.getParameter("idPlaylist");
 		
-		int idSong = -1;
-		int idPlaylist = -1;
+		int idSong;
+		int idPlaylist;
 		
 		try {
 			idSong = Integer.parseInt(idSongString);
@@ -79,27 +64,29 @@ public class AddSongToPlaylist extends HttpServlet {
 			
 		}catch(NumberFormatException e) {
 			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error parsing when getting match id");
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error parsing idSong or idPlaylist selected");
 			return;
 		}
 		
 		
 		Match match = new Match(idSong, idPlaylist);
 		MatchDAO matchDAO = new MatchDAO(connection);
-		int created = 0;
+		int matchCreated;
 		try {
-			created = matchDAO.createMatch(match);
+			//return zero if the match is already present
+			matchCreated = matchDAO.createMatch(match);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating match");
 			return;
 		}
-		if (created == 0) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Match was not created");
-			return;
+		
+		if (matchCreated == 0) {
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Match was already present");
+		}else {
+			response.sendRedirect("GetPlaylist?idPlaylist="+idPlaylist);
 		}
 		
-		response.sendRedirect("/MusicPlaylist/GetPlaylist?idPlaylist="+idPlaylist);
 		
 	}
 	

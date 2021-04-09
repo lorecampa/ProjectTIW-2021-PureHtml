@@ -100,7 +100,7 @@ public class UserDAO {
 	
 	public int createUser(User user) throws SQLException {
 		int code = 0;
-		String query = "INSERT into MusicPlaylistdb.user (username, email, password, name, surname)   VALUES(?, ?, ?, ?, ?);";
+		String query = "INSERT IGNORE INTO MusicPlaylistdb.user (username, email, password, name, surname)   VALUES(?, ?, ?, ?, ?);";
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);

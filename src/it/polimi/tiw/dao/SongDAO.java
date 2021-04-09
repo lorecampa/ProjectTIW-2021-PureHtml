@@ -58,8 +58,9 @@ public class SongDAO {
 	
 	}
 	
+	//return null if it finds no song with this id
 	public Song findSongById(int songId) throws SQLException {
-		Song song = new Song();
+		Song song = null;
 		String query = "SELECT * FROM MusicPlaylistdb.Song WHERE id = ?";
 		ResultSet result = null;
 		PreparedStatement pstatement = null;
@@ -68,16 +69,16 @@ public class SongDAO {
 			pstatement.setInt(1, songId);
 			result = pstatement.executeQuery();
 			
-			//devo controllare che il risultato sia unico?? per me no
-			while(result.next()) {
+			if (result.next()) {
+				song = new Song();
 				song.setId(songId);
 				song.setTitle(result.getString("title"));
 				song.setImageUrl(result.getString("imageUrl"));
 				song.setSongUrl(result.getString("songUrl"));
 				song.setIdCreator(result.getInt("idCreator"));
 				song.setIdAlbum(result.getInt("idAlbum"));
-				
 			}
+			
 
 		} catch (SQLException e) {
 			throw new SQLException(e);
