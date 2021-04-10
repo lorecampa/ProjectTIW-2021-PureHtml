@@ -10,17 +10,22 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 
-@WebServlet("/ShowImage/*")
-public class ShowImage extends HttpServlet {
+@WebServlet("/ShowFile/*")
+public class ShowFile extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	String imagePath = "";
+	String audioPath = "";
 
 	public void init() throws ServletException {
 		// get folder path from webapp init parameters inside web.xml
 		imagePath = getServletContext().getInitParameter("imagePath");
+		audioPath = getServletContext().getInitParameter("audioPath");
+
+		
 	}
 
 	
@@ -28,22 +33,36 @@ public class ShowImage extends HttpServlet {
 			throws ServletException, IOException {
 		String pathInfo = request.getPathInfo();
 		
-		// PathInfo: The part of the request path that is not part of the Context Path
-		// or the Servlet Path.
-		// It is either null if there is no extra path, or is a string with a leading
-		// ‘/’
+		
 
 		if (pathInfo == null || pathInfo.equals("/")) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing file name!");
 			return;
 		}
-
-		// substring(1) useful to remove first "/" in path info
-		// because it is not part of the filename
-		String filename = URLDecoder.decode(pathInfo.substring(1), "UTF-8");
-
-		File file = new File(imagePath + filename); //folderPath inizialized in init
-
+		
+		int index = pathInfo.lastIndexOf("_");
+		String fileType = pathInfo.substring(1, index);
+		String fileId = pathInfo.substring(index + 1);
+		
+		
+		String filePath;
+		if (fileType.equals("image")) {
+			filePath = imagePath;
+		}else if(fileType.equals("audio")) {
+			filePath = audioPath;
+		}
+		else {
+			HttpSession session = request.getSession();
+			session.invalidate();
+			String path = "SubmitLogin";
+			String msg = "You are trying to access wrong information. Login again to identify yourself ";
+			response.sendRedirect(path+"?logout=" + msg);
+			return;
+		}
+		
+		URLDecoder.decode(fileId, "UTF-8");
+		File file = new File(filePath + fileId); 
+		System.out.println("Path: " + filePath + fileId);
 
 		if (!file.exists() || file.isDirectory()) {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not present");
@@ -51,15 +70,13 @@ public class ShowImage extends HttpServlet {
 		}
 
 		// set headers for browser
-		response.setHeader("Content-Type", getServletContext().getMimeType(filename));
+		response.setHeader("Content-Type", getServletContext().getMimeType(fileId));
 		response.setHeader("Content-Length", String.valueOf(file.length()));
 		
-		//TODO: test what happens  if you change inline by  attachment
 		response.setHeader("Content-Disposition", "inline; filename=\"" + file.getName() + "\"");
 																									
 		// copy file to output stream
 		Files.copy(file.toPath(), response.getOutputStream());
-		System.out.println("PathInfo2: " + pathInfo);
 
 	}
 }

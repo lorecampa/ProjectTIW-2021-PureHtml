@@ -11,7 +11,9 @@
 	<span th:text = ${album.interpreter}> Interpreter</span><br>
 	<span th:text = ${album.year}> Year</span><br>
 	<span th:text = ${album.genre}> Genre</span><br>
-	 
+	<audio controls>
+  		<source th:src="'ShowFile/audio_' + ${song.songUrl}" type="audio/ogg">
+  	</audio><br> 
 	<a th:href= "@{/GetPlaylist(idPlaylist = ${idPlaylist}, currentSlide=${0})}">return to playlist</a>
 
 	
