@@ -17,8 +17,11 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
+
+import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Playlist;
 import it.polimi.tiw.beans.User;
+import it.polimi.tiw.dao.AlbumDAO;
 import it.polimi.tiw.dao.PlaylistDAO;
 import it.polimi.tiw.dao.UserDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
@@ -62,11 +65,20 @@ public class GetHomePage extends HttpServlet {
 			//debug
 			e.printStackTrace();
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding playlist");
-
+		}
+		AlbumDAO albumDAO = new AlbumDAO(connection);
+		ArrayList<Album> albums = new ArrayList<>();
+		try {
+			albums = albumDAO.findAllUserAlbumsById(user.getId());
+		} catch (SQLException e) {
+			//debug
+			e.printStackTrace();
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding users albums");
 		}
 		
 		
 		String errorCreatePlaylist = request.getParameter("errorCreatePlaylist");
+		String errorCreateAlbum = request.getParameter("errorCreateSong");
 		String errorCreateSong = request.getParameter("errorCreateSong");
 
 		
@@ -75,8 +87,13 @@ public class GetHomePage extends HttpServlet {
 		ServletContext servletContext = getServletContext();
 		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
 		ctx.setVariable("playlists", playlists);
+		ctx.setVariable("userAlbums", albums);
+
 		if (errorCreatePlaylist != null) {
 			ctx.setVariable("errorCreatePlaylist", errorCreatePlaylist);
+		}
+		if (errorCreateAlbum != null) {
+			ctx.setVariable("errorCreateAlbum", errorCreateAlbum);
 		}
 		if (errorCreateSong != null) {
 			ctx.setVariable("errorCreateSong", errorCreateSong);

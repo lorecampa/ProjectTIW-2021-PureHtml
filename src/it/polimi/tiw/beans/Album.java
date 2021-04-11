@@ -6,26 +6,31 @@ public class Album {
 	private String interpreter;
 	private short year;
 	private Genre genre;
+	private Integer idCreator;
+	private String imageUrl;
 	
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
+
 	public Album() {
 		super();
 	}
 
-	public Album(int id, String title, String interpreter, short year, Genre genre) {
-		super();
-		this.id = id;
-		this.title = title;
-		this.interpreter = interpreter;
-		this.year = year;
-		this.genre = genre;
-	}
-	public Album(String title, String interpreter, short year, Genre genre) {
+	public Album(String title, String interpreter, short year, Genre genre, Integer idCreator, String imageUrl) {
 		super();
 		this.title = title;
 		this.interpreter = interpreter;
 		this.year = year;
 		this.genre = genre;
+		this.idCreator = idCreator;
+		this.imageUrl = imageUrl;
 	}
+	
 	
 	public int getId() {
 		return id;
@@ -67,7 +72,16 @@ public class Album {
 		this.genre = genre;
 	}
 
+	public Integer getIdCreator() {
+		return idCreator;
+	}
+
+	public void setIdCreator(Integer idCreator) {
+		this.idCreator = idCreator;
+	}
 	
 	
+
+
 
 }

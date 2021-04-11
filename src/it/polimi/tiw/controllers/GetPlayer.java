@@ -57,23 +57,39 @@ public class GetPlayer extends HttpServlet {
 			idSong = Integer.parseInt(idSongString);
 			idPlaylist = Integer.parseInt(idPlayerString);
 		}catch(NumberFormatException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing ids");
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing song or playlist ids");
 			return;
 		}
 		
 		//finding playlist
+		SongDAO songDAO = new SongDAO(connection);
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
+		AlbumDAO albumDAO = new AlbumDAO(connection);
 		Playlist playlist;
+		Song song;
+		Album album = new Album();
+		
 		try {
 			playlist = playlistDAO.findPlaylistById(idPlaylist);
+			song = songDAO.findSongById(idSong);
+			if (song != null) {
+				album = albumDAO.findAlumById(song.getIdAlbum());
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue getting playlist information");
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue getting song information");
 			return;
 		}
+		
+		System.out.println("Userid: " + user.getId());
+		System.out.println("Playlist id creator: " + playlist.getIdCreator());
+		System.out.println("Album id creator: " + album.getIdCreator());
 		
 		//control that the playlist belongs to the user session
-		if(playlist == null || !(playlist.getIdCreator() == user.getId())) {
+		if(playlist == null || song == null || album == null ||
+				(playlist.getIdCreator() != user.getId() ||
+				(album.getIdCreator() != user.getId())) ) {
+			
 			session.invalidate();
 			String path = "SubmitLogin";
 			String msg = "You are trying to access wrong information. Login again to identify yourself ";
@@ -81,43 +97,12 @@ public class GetPlayer extends HttpServlet {
 			return;
 		}		
 		
-		SongDAO songDAO = new SongDAO(connection);
-		Song song;
-		try {
-			song = songDAO.findSongById(idSong);
-		} catch (SQLException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error finding song");
-			return;
-		}
+	
+
+
 		
-		//control that the song belongs to the user session
-		//song could be null even if someone delete the song in db
-		if(song == null || !(song.getIdCreator() == user.getId())) {
-			session.invalidate();
-			String path = "SubmitLogin";
-			String msg = "You are trying to access wrong information. Login again to identify yourself ";
-			response.sendRedirect(path+"?logout=" + msg);
-			return;
-		}		
-		
-		
-		AlbumDAO albumDAO = new AlbumDAO(connection);
-		Album album;
-		
-		try {
-			album = albumDAO.findAlumById(song.getIdAlbum());
-		} catch (SQLException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error finding album");
-			return;		
-		}
-		
-		//if someone delete the song meanwhile i click to it
-		if (album == null) {
-			//in future i can add an error to display
-			String path = "GetPlaylistPage";
-			response.sendRedirect(path);
-			return;
-		}
+	
+	
 		
 		//forward
 		String path = "/WEB-INF/Templates/Player";

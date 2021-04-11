@@ -36,17 +36,18 @@ import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
 
-@WebServlet("/CreateSong")
+@WebServlet("/CreateAlbum")
 @MultipartConfig
-public class CreateSong extends HttpServlet {
+public class CreateAlbum extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	private String imagePath = null;
 	private String audioPath = null;
 	private TemplateEngine templateEngine;
 	private Connection connection = null;
 
        
     
-    public CreateSong() {
+    public CreateAlbum() {
         super();
     }
     
@@ -58,7 +59,7 @@ public class CreateSong extends HttpServlet {
 		this.templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
 		
 		//starting path for saving images and audio files
-    	audioPath = getServletContext().getInitParameter("audioPath");
+    	imagePath = getServletContext().getInitParameter("imagePath");
     	
     }
     
@@ -80,152 +81,146 @@ public class CreateSong extends HttpServlet {
 		User user = (User) session.getAttribute("user");
 		
 		String title = request.getParameter("title");
-		String albumIdString = request.getParameter("albums");
-		
+		String interpreter = request.getParameter("interpreter");
+		String yearString = request.getParameter("year");
+		String genreString = request.getParameter("genre");
 
 		
 		if (title == null || title.isEmpty() || 
-				albumIdString == null || albumIdString.isEmpty()) {
+				interpreter  == null || interpreter.isEmpty() ||
+				yearString == null || yearString.isEmpty() ||
+				genreString == null || genreString.isEmpty()) {
 			
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad parametres");
 			return;
 		}
 		
-		int albumId;
+		Short year;
 		try {
-			albumId = Integer.parseInt(albumIdString);
-			
+			year = Short.parseShort(yearString);
+			// year limit
+			if (year < 0 || year > 3000) {
+				//return error to home page
+				String msg = "The year must be bewteween 0 and 3000";
+				String path = "GetHomePage";
+				response.sendRedirect(path + "?errorCreateAlbum="+msg);
+				return;
+			}
 		} catch (NumberFormatException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing album when creating song");
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing year when creating song");
 			return;
 		}
 		
-		System.out.println("Albumid: " + albumId);
-		
-		AlbumDAO albumDAO = new AlbumDAO(connection);
-		Album album;
-		try {
-			album = albumDAO.findAlumById(albumId);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error finding album in database");
+		Genre genre = Genre.fromString(genreString);
+		if (genre.getDisplayName().equals("Not found")){
+			//return error to home page
+			String msg = "Genre is not from list";
+			String path = "GetHomePage";
+			response.sendRedirect(path + "?errorCreateAlbum="+msg);
 			return;
 		}
-		//if idAlbum is doesn't belong to the user
-		if (album == null || (album.getIdCreator() != user.getId())) {
-			session.invalidate();
-			String path = "SubmitLogin";
-			String msg = "You are trying to access wrong information. Login again to identify yourself ";
-			response.sendRedirect(path+"?logout=" + msg);
-			return;
-		}
-	
 		
-		Part audioPart = request.getPart("audio");
+		Part imagePart = request.getPart("picture");
 		
 		// We first check the parameter needed is present
-		if (audioPart == null || audioPart.getSize() <= 0){
+		if (imagePart == null || imagePart.getSize() <= 0) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing file in request!");
 			return;
 		}
 		
 		
-	
-		//create initial song		
-		Song song = new Song(title, "LAZY_LOADING", album.getId());
-		SongDAO songDAO = new SongDAO(connection);
 		
+		Album album = new Album(title, interpreter, year, genre, user.getId(), "LAZY_LOADING");
+		AlbumDAO albumDAO = new AlbumDAO(connection);
 		
-		//create initial song
-		int songCreated;
+		int albumCreated;
 		try {
-			//return 0 if the song was already present (title, albumId) are a unique constraint
-			songCreated = songDAO.createSong(song);
+			//if albumCreated is 0 then it was already present in our database (title, interpreter, year, genre, idCreator) is a unique constraint
+			albumCreated = albumDAO.createAlbum(album);
 		} catch (SQLException e) {
 			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating initial song");
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating album");
 			return;
 		}
-		
-		if (songCreated == 0) {
-			//return error to home page
-			String msg = "Song already present in your list";
+		if(albumCreated == 0) {
+			//album was already created
+			String msg = "Album already present in your list";
 			String path = "GetHomePage";
-			response.sendRedirect(path + "?errorCreateSong="+msg);
+			response.sendRedirect(path + "?errorCreateAlbum="+msg);
 			return;
 		}
 		
-		
-		//find song id that was already created
+			
+		//now that album is created
 		try {
-			song.setId(songDAO.findSongId(song));
+			//find id of album
+			album.setId(albumDAO.findAlbumId(album));
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding song after creation");
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding album");
 			return;
 		}
-		
 		
 		
 		//control type and then make some controls
 		
-		String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
-		int indexAudio = audioFileName.lastIndexOf('.');
-		String audioExt = "";
-		
-		audioExt = audioFileName.substring(indexAudio);
-		
-		String audioId = "" + song.getIdAlbum() + "-" + song.getId() + audioExt;
+		String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+		int indexImage = imageFileName.lastIndexOf('.');
+		String imageExt = "";
+		imageExt = imageFileName.substring(indexImage);
+		String imageId = "" + album.getIdCreator() + "-" + album.getId() + imageExt;
 		
 		//imagePath and audioPath refers to the path initialized in the init part
-		String audioOutputPath = audioPath + audioId;
+		String imageOutputPath = imagePath + imageId;
 		
-		System.out.println("AudioOutputPath: " + audioOutputPath);
+		System.out.println("ImageOutputPath: " + imageOutputPath);
 
-				
-		File audioFile = new File(audioOutputPath);
 		
 		
-		try (InputStream fileContent = audioPart.getInputStream()) {
-
-			Files.copy(fileContent, audioFile.toPath());
+		
+		File imageFile = new File(imageOutputPath);
+		
+		try (InputStream fileContent = imagePart.getInputStream()) {
+			
+			Files.copy(fileContent, imageFile.toPath());
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			
 			try {
-				songDAO.removeInitialSong(song);
+				albumDAO.removeInitialAlbum(album.getId());
 			} catch (SQLException e1) {
 				e1.printStackTrace();
-				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue removing initial song after error in saving audio");
+				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue removing initial album after error in saving image");
 				return;
 			}
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error saving audio in: " + audioPath);
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue saving album image in: " + imagePath);
 			return;
 			
 		}
-	
 		
-		song.setSongUrl(audioId);
-		int updateSong;
+		album.setImageUrl(imageId);
+		
+		
+		int updateAlbum;
 		try {
-			updateSong = songDAO.updateSong(song);
+			updateAlbum  = albumDAO.updateAlbum(album);
 		} catch (SQLException e) {
 			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue updating song audio path files");
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue updating song path files");
 			return;
 		}
 		
+		
 		String msg;
-		if (updateSong == 0) {
-			msg = "Song: " + song.getId() + " audio was not update. No audio in database";
+		if (updateAlbum == 0) {
+			msg = "Album: " + album.getId() + " image was not update. No images in database";
 		}else {
-			msg = "Song " + song.getTitle() + " created succesfully";
+			msg = "Album " + album.getTitle() + " created succesfully";
 		}
 		
 		String path = "GetHomePage";
-		response.sendRedirect(path + "?errorCreateSong="+msg);
-		
+		response.sendRedirect(path + "?errorCreateAlbum="+msg);
 		
 	}
 	

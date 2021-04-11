@@ -45,7 +45,7 @@ public class MatchDAO {
 		ArrayList<Integer> songIds = new ArrayList<>();
 		String query = "SELECT m.idSong\n"
 				+ "FROM MusicPlaylistdb.Match AS m, MusicPlaylistdb.Song AS s, MusicPlaylistdb.Album AS a\n"
-				+ "WHERE m.idSong = s.id and s.idAlbum = a.id and  m.idPlaylist = ? and s.idCreator = ? \n"
+				+ "WHERE m.idPlaylist = ? && m.idSong = s.id && s.idAlbum = a.id && a.idCreator = ?\n"
 				+ "ORDER BY a.year DESC";
 		ResultSet result = null;
 		PreparedStatement pstatement = null;

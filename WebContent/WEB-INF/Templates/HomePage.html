@@ -54,14 +54,11 @@
 		<input value = "create" type = "submit">
 	</form>
 	
-	
-	
-	
-	<h1>Create Song</h1>
-	<form method= "POST" th:action="@{/CreateSong}" enctype="multipart/form-data">
-		<p style="color:red" th:text=" ${errorCreateSong}">error</p>
+	<br>
+	<h1>Create Album</h1>
+	<form method= "POST" th:action="@{/CreateAlbum}" enctype="multipart/form-data">
+		<p style="color:red" th:text=" ${errorCreateAlbum}">error</p>
 		<label>Title</label> <input name = "title" id="title" type="text" required><br>
-		<label>Album </label><input name = "album" id = "album" type="text" required><br>
 		<label>Interpreter</label> <input name = "interpreter" type="text" required><br>
 		<label>Year</label> <input name = "year" type="number" min=0 required><br>
 		<label>Genre</label>
@@ -79,9 +76,30 @@
 			<option value= "Polka">Polka</option>
 		</select><br>
 		<label>Picture </label><input name = "picture" type="file" required><br>
-		<label>Track file </label><input name = "audio" type="file"required><br>
 		<input value = "create" type = "submit">		
 	</form>
+	
+	
+	<h1>Create Song</h1>
+	<form method= "POST" th:action="@{/CreateSong}" enctype="multipart/form-data">
+		<p style="color:red" th:text=" ${errorCreateSong}">error</p>
+		<label>Title</label> <input name = "title" id="title" type="text" required><br>
+		<label>Track file </label><input name = "audio" type="file"required><br>
+		
+		<label th:if = "${userAlbums.isEmpty()}">No albums created yet</label>
+		<div th:if = "${not userAlbums.isEmpty()}">
+			<label>Albums </label>
+			<select th:if = "${not userAlbums.isEmpty()}" name= "albums" th:remove = "all-but-first" required>
+				<option th:each= "album: ${userAlbums}" th:value= "${album.id}" th:text ="${album.title}" > Album Title</option>
+				<option>Like a Rolling Stone</option>
+				<option>Imagine</option>
+			</select>
+		</div>
+		<br>
+		<input value = "create" type = "submit">		
+	</form>
+	
+	
 	
 	<br><br><br>
 	<form method= "POST" th:action="@{/Logout}">

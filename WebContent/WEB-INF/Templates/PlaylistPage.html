@@ -20,8 +20,8 @@
 			</tr>
 
 			<tr>
-			 	<td th:each= "song: ${songs}">
-			 	<img  th:src="'ShowFile/image_' + ${song.imageUrl}" th:alt="${song.imageUrl}" width="150" height="100">
+			 	<td th:each= "album: ${albums}">
+			 	<img  th:src="'ShowFile/image_' + ${album.imageUrl}" th:alt="${album.imageUrl}" width="150" height="100">
 			 	</td>
 			</tr>
 			

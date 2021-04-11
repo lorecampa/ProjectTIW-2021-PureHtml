@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeMap;
+
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.UnavailableException;
@@ -88,8 +90,7 @@ public class GetPlaylist extends HttpServlet {
 		}
 		
 		//control that the playlist belongs to the user session
-		//you are trying to imbrogliare--> guardare se si può fare un metodo per non farlo ripetere sempre
-		if(playlist == null || !(playlist.getIdCreator() == user.getId()) || currentSlide < 0) {
+		if(playlist == null || (playlist.getIdCreator() != user.getId()) || currentSlide < 0) {
 			session.invalidate();
 			String path = "SubmitLogin";
 			String msg = "You are trying to access wrong information. Login again to identify yourself ";
@@ -113,17 +114,32 @@ public class GetPlaylist extends HttpServlet {
 		}
 		
 		SongDAO songDAO = new SongDAO(connection);
+		AlbumDAO albumDAO = new AlbumDAO(connection);
+
 		ArrayList<Song> songs = new ArrayList<>();
-		
+		ArrayList<Album> albums = new ArrayList<>();
+		Song song;
+		Album album;
+		//find all songs in playlist selected
 		for(int id: playlistSongIds) {
 			try {
-				songs.add(songDAO.findSongById(id));
+				//return null if song is not present
+				song = songDAO.findSongById(id);
+				if (song != null) {
+					album = albumDAO.findAlumById(song.getIdAlbum());
+					if (album != null) {
+						songs.add(song);
+						albums.add(album);
+					}
+				}
 				
 			} catch (SQLException e) {
 				e.printStackTrace();
-				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving playlist song information");
+				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving playlist song or album information");
 				return;
 			}
+			
+			
 		}
 		
 		
@@ -131,10 +147,11 @@ public class GetPlaylist extends HttpServlet {
 		ArrayList<Song> userSongsSelection = new ArrayList<>();
 		try {
 			ArrayList<Song> tempSelection = new ArrayList<>();
+			//return empty list if there are no songs
 			tempSelection = songDAO.findAllSongByUserId(idUser);
-			for (Song song: tempSelection) {
-				if(!playlistSongIds.contains(song.getId())) {
-					userSongsSelection.add(song);
+			for (Song songTemp: tempSelection) {
+				if(!playlistSongIds.contains(songTemp.getId())) {
+					userSongsSelection.add(songTemp);
 				}
 			}
 		} catch (SQLException e) {
@@ -187,6 +204,7 @@ public class GetPlaylist extends HttpServlet {
 		ctx.setVariable("playlist", playlist);
 		ctx.setVariable("userSongsSelection", userSongsSelection);
 		ctx.setVariable("songs", songs.subList(fromIndex, toIndex));
+		ctx.setVariable("albums", albums.subList(fromIndex, toIndex));
 		ctx.setVariable("isNextActive", isNextActive);
 		ctx.setVariable("isPrevActive", isPrevActive);
 		ctx.setVariable("currentSlide", currentSlide);
