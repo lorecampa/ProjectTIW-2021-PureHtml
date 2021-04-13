@@ -1,0 +1,34 @@
+title SubmitLogin (POST)
+
+participant SubmitLogin
+participant UserDAO
+participant Login.html
+participant session
+participant GetHomePage
+
+SubmitLogin->UserDAO: findIdOfUsername(username)
+
+SubmitLogin <-- UserDAO: idUser
+
+SubmitLogin -> Login.html: if(idUser = -1) incorrect user
+
+SubmitLogin->UserDAO: isPasswordCorrect(idUser, password)
+
+SubmitLogin<--UserDAO: passwordState
+
+SubmitLogin-> Login.html: if(!passwordState) incorrect password
+
+SubmitLogin->UserDAO: findUserById(idUser)
+SubmitLogin<--UserDAO: user
+
+SubmitLogin->session: session.setAttribute("user", user)
+
+SubmitLogin->GetHomePage: redirect
+
+
+
+
+
+
+
+

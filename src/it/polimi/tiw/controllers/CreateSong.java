@@ -129,6 +129,13 @@ public class CreateSong extends HttpServlet {
 			return;
 		}
 		
+		String contentType = audioPart.getContentType();
+		//check if the file is an image
+		if (!contentType.startsWith("audio")) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Audio file format not permitted");
+			return;
+		}
+		
 		
 	
 		//create initial song		

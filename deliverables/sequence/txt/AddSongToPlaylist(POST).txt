@@ -1,0 +1,12 @@
+title AddSongToPlaylist(POST)
+
+participant AddSongToPlaylist
+participant matchDAO
+participant GetPlaylist
+
+AddSongToPlaylist ->matchDAO: createMatch(idSong, idPlaylist)
+
+AddSongToPlaylist <-- matchDAO: created
+
+
+AddSongToPlaylist ->GetPlaylist: if(created != 0) redirect ?(idPlaylist, currentSlide)

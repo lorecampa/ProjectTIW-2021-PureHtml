@@ -14,7 +14,7 @@
 	<audio controls>
   		<source th:src="'ShowFile/audio_' + ${song.songUrl}" type="audio/ogg">
   	</audio><br> 
-	<a th:href= "@{/GetPlaylist(idPlaylist = ${idPlaylist}, currentSlide=${0})}">return to playlist</a>
+	<a th:href= "@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide=${0})}" th:text = "'Return to playlist ' + ${playlist.title}">return to playlist</a>
 
 	
 </body>

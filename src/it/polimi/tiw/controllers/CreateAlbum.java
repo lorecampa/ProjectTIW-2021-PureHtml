@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.WebContext;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 
@@ -97,15 +98,16 @@ public class CreateAlbum extends HttpServlet {
 		
 		Short year;
 		try {
-			year = Short.parseShort(yearString);
+			Integer yearInteger = Integer.parseInt(yearString);
 			// year limit
-			if (year < 0 || year > 3000) {
+			if (yearInteger < 0 || yearInteger > 3000) {
 				//return error to home page
 				String msg = "The year must be bewteween 0 and 3000";
 				String path = "GetHomePage";
 				response.sendRedirect(path + "?errorCreateAlbum="+msg);
 				return;
 			}
+			year = yearInteger.shortValue();
 		} catch (NumberFormatException e) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing year when creating song");
 			return;
@@ -125,6 +127,13 @@ public class CreateAlbum extends HttpServlet {
 		// We first check the parameter needed is present
 		if (imagePart == null || imagePart.getSize() <= 0) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing file in request!");
+			return;
+		}
+		
+		String contentType = imagePart.getContentType();
+		//check if the file is an image
+		if (!contentType.startsWith("image")) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Image file format not permitted");
 			return;
 		}
 		

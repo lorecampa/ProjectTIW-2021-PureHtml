@@ -1,0 +1,13 @@
+title SubmitRegistration(POST)
+
+participant SubmitRegistration
+participant userDAO
+participant Login.html
+
+SubmitRegistration ->userDAO:userDAO.createUser(user)
+
+SubmitRegistration <-- userDAO: created
+
+SubmitRegistration ->Login.html: if(created = 0) redirect("Already Registred")
+
+SubmitRegistration ->Login.html: if(created != 0) redirect ("Registration completed")

@@ -1,0 +1,26 @@
+title GetHomePage(GET)
+
+participant GetHomePage
+participant playlistDAO
+participant AlbumDAO
+participant ctx
+participant TemplateEngine
+
+
+GetHomePage ->playlistDAO: playlistDAO.findAllPlaylistByUserId(userId) 
+
+GetHomePage <--playlistDAO: playlists
+
+GetHomePage ->AlbumDAO: findAllUserAlbumsById(userId) 
+
+GetHomePage <-- AlbumDAO: albums
+
+GetHomePage ->ctx: setVariables(playlists)
+GetHomePage ->ctx: setVariables(albums)
+
+GetHomePage ->TemplateEngine: process(ctx, "HomePage.html") 
+
+
+
+
+

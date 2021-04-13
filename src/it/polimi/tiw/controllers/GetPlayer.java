@@ -81,9 +81,7 @@ public class GetPlayer extends HttpServlet {
 			return;
 		}
 		
-		System.out.println("Userid: " + user.getId());
-		System.out.println("Playlist id creator: " + playlist.getIdCreator());
-		System.out.println("Album id creator: " + album.getIdCreator());
+
 		
 		//control that the playlist belongs to the user session
 		if(playlist == null || song == null || album == null ||
@@ -95,7 +93,11 @@ public class GetPlayer extends HttpServlet {
 			String msg = "You are trying to access wrong information. Login again to identify yourself ";
 			response.sendRedirect(path+"?logout=" + msg);
 			return;
-		}		
+		}	
+		
+		System.out.println("Userid: " + user.getId());
+		System.out.println("Playlist id creator: " + playlist.getIdCreator());
+		System.out.println("Album id creator: " + album.getIdCreator());
 		
 	
 
@@ -105,12 +107,12 @@ public class GetPlayer extends HttpServlet {
 	
 		
 		//forward
-		String path = "/WEB-INF/Templates/Player";
+		String path = "/WEB-INF/Templates/Player.html";
 		ServletContext servletContext = getServletContext();
 		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
 		ctx.setVariable("song", song);
 		ctx.setVariable("album", album);
-		ctx.setVariable("idPlaylist", idPlaylist);
+		ctx.setVariable("playlist", playlist);
 
 		
 		templateEngine.process(path, ctx, response.getWriter());

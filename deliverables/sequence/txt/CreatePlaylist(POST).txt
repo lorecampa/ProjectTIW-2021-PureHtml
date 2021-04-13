@@ -1,0 +1,14 @@
+title CreatePlaylist(POST)
+
+participant CreatePlaylist
+participant PlaylistDAO
+participant GetHomePage
+
+CreatePlaylist ->PlaylistDAO: createPlaylist(playlistName, userId)
+
+CreatePlaylist <--PlaylistDAO: created
+
+CreatePlaylist ->GetHomePage: if (created = 0) redirect("Playlist was already present")
+
+CreatePlaylist ->GetHomePage: if( created != 0) redirect
+

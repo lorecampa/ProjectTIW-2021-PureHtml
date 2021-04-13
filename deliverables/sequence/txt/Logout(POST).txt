@@ -1,0 +1,9 @@
+title Logout (POST)
+participant Logout
+participant session
+participant SubmitLogin
+
+
+Logout ->session: invalidate()
+
+Logout -> SubmitLogin: redirect("Logout succesfully")

@@ -1,0 +1,21 @@
+title CreateSong(POST)
+
+participant CreateSong
+participant albumDAO
+participant songDAO
+participant  GetHomePage
+
+CreateSong ->albumDAO: findAlbumById(albumId)
+
+CreateSong <-- albumDAO: idAlbum
+
+CreateSong ->songDAO: createSong(song)
+
+CreateSong <-- songDAO: created
+
+CreateSong ->songDAO: findSongId(song)
+CreateSong <-- songDAO: idSong
+
+CreateSong ->songDAO: updateSong(audioId)
+
+CreateSong -> GetHomePage: redirect

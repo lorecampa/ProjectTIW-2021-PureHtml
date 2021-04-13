@@ -78,12 +78,12 @@ public class GetHomePage extends HttpServlet {
 		
 		
 		String errorCreatePlaylist = request.getParameter("errorCreatePlaylist");
-		String errorCreateAlbum = request.getParameter("errorCreateSong");
+		String errorCreateAlbum = request.getParameter("errorCreateAlbum");
 		String errorCreateSong = request.getParameter("errorCreateSong");
 
 		
 		
-		String path = "/WEB-INF/Templates/HomePage";
+		String path = "/WEB-INF/Templates/HomePage.html";
 		ServletContext servletContext = getServletContext();
 		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
 		ctx.setVariable("playlists", playlists);

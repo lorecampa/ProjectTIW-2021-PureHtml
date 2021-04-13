@@ -1,0 +1,9 @@
+title SubmitLogin
+
+participant SubmitLogin
+participant GetHomePage
+participant Login.html
+
+SubmitLogin -> GetHomePage: if(sessione != null) redirect
+
+SubmitLogin -> Login.html: if(session == null || user == null) redirect 
