@@ -2,8 +2,10 @@ package it.polimi.tiw.controllers;
 
 import java.io.IOException;
 import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.ErrorType;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
+import it.polimi.tiw.utils.PathUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -40,20 +42,14 @@ public class SubmitLogin extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		String path;
 		HttpSession session = request.getSession(false);
+		//session's over
 		if (session == null || session.getAttribute("user") == null) {
-			String msg = request.getParameter("logout");
-			//session's over
-			path = "/WEB-INF/Templates/Login.html";
-			ServletContext servletContext = getServletContext();
-			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-			ctx.setVariable("logout", msg);
-			templateEngine.process(path, ctx, response.getWriter());
+			
+			forward(request, response, PathUtils.LOGIN_PAGE);
 		}else {
 			//otherwise go to home page
-			path = getServletContext().getContextPath() + "/GetHomePage";
-			response.sendRedirect(path);
+			response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_PAGE);
 		}
 		
 		
@@ -61,12 +57,12 @@ public class SubmitLogin extends HttpServlet {
 
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String username = request.getParameter("username");
+		String email = request.getParameter("email").toLowerCase();
 		String password = request.getParameter("password");
 		
-		if (username == null || username.isEmpty() ||
+		if (email == null || email.isEmpty() ||
 				password == null || password.isEmpty()) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad Login parametres");
+			forwardToErrorPage(request, response, ErrorType.LOGIN_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
@@ -74,10 +70,9 @@ public class SubmitLogin extends HttpServlet {
 		int idUser = 0;
 		UserDAO userDAO = new UserDAO(connection);
 		try {
-			idUser = userDAO.findIdOfUserByUsername(username);
+			idUser = userDAO.findIdOfUserByEmail(email);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error finding userId information");
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 
 		}
@@ -86,11 +81,8 @@ public class SubmitLogin extends HttpServlet {
 		
 		if (idUser == -1) {
 			//username not present in db
-			ServletContext servletContext = getServletContext();
-			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-			ctx.setVariable("logout", "Incorrect username");
-			String path = "/WEB-INF/Templates/Login.html";
-			templateEngine.process(path, ctx, response.getWriter());
+			request.setAttribute("loginWarnings", "Incorrect username");
+			forward(request, response, PathUtils.LOGIN_PAGE);
 			return;
 			
 		}
@@ -98,19 +90,15 @@ public class SubmitLogin extends HttpServlet {
 		boolean isPasswordCorrect = false;
 		try {
 			isPasswordCorrect = userDAO.isPasswordCorrect(idUser, password);
-			
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error validating user: "+username+" password");
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
+		
 		if(!isPasswordCorrect) {
 			//password not correct
-			ServletContext servletContext = getServletContext();
-			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-			ctx.setVariable("logout", "Incorrect password");
-			String path = "/WEB-INF/Templates/Login.html";
-			templateEngine.process(path, ctx, response.getWriter());
+			request.setAttribute("loginWarnings", "Incorrect password");
+			forward(request, response, PathUtils.LOGIN_PAGE);
 			return;
 		}
 		
@@ -119,23 +107,35 @@ public class SubmitLogin extends HttpServlet {
 		try {
 			user = userDAO.findUserById(idUser);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving user information");
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
 		if (user == null) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Cannot create user bean from db");
+			forwardToErrorPage(request, response, ErrorType.FINDING_USER_ERROR.getMessage());
 			
 		}else {
 			//adding user to session
 			HttpSession session = request.getSession(true);
 			session.setAttribute("user", user);
-			response.sendRedirect("GetHomePage");
+			response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
 		}
 		
 		
 		
+	}
+	
+	private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
+		
+	}
+	
+	private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, String error) throws ServletException, IOException{
+		request.setAttribute("error", error);
+		forward(request, response, PathUtils.ERROR_PAGE);
+		return;
 	}
 	
 	public void destroy() {

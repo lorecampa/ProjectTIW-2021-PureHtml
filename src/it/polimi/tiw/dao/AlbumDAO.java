@@ -20,9 +20,18 @@ public class AlbumDAO {
 	
 	
 	//creates an album in db, return 0 if album was already present (IGNORE statement)
-	public int createAlbum(Album album) throws SQLException {
+	public int createAlbum(Album album, String imageExt) throws SQLException {
 		int code = 0;
-		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Album` (`title`, `interpreter`, `year`, `genre`, `idCreator`, `imageUrl`) VALUES (?, ?, ?, ?, ?, ?)";
+		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Album` (`title`, `interpreter`, `year`, `genre`, `idCreator`, `imageUrl`)\n"
+				+ "VALUES (\n"
+				+ "?,\n"
+				+ "?,\n"
+				+ "?,\n"
+				+ "?,\n"
+				+ "?,\n"
+				+ "(SELECT CONCAT( (SELECT (coalesce(MAX(a1.id), 0) + 1) FROM MusicPlaylistdb.Album as a1) , ?))\n"
+				+ ")";
+		
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);
@@ -31,10 +40,10 @@ public class AlbumDAO {
 			pstatement.setShort(3,  album.getYear());
 			pstatement.setString(4, album.getGenre().getDisplayName());
 			pstatement.setInt(5, album.getIdCreator());
-			pstatement.setString(6, album.getImageUrl());
-
+			pstatement.setString(6, "-" + album.getIdCreator() + imageExt);
+			
 			code = pstatement.executeUpdate();
-
+			
 		} catch (SQLException e) {
 			throw new SQLException(e);
 		} finally {
@@ -137,51 +146,7 @@ public class AlbumDAO {
 		return album;
 	}
 	
-	
-	//remove initial album if we failed to save the image in our database
-	public int removeInitialAlbum(int albumId) throws SQLException {
-		int code = 0;
-		String query = "DELETE FROM MusicPlaylistdb.Album WHERE id = ?";
-		PreparedStatement pstatement = null;
-		try {
-			pstatement = con.prepareStatement(query);
-			pstatement.setInt(1, albumId);
-			code = pstatement.executeUpdate();
 
-		} catch (SQLException e) {
-			throw new SQLException(e);
-		} finally {
-			try {
-				pstatement.close();
-			} catch (Exception e1) {
-
-			}
-		}
-		return code;
-	}
-	
-	//update album in database after saving image, return 0 if we didn't execute the update
-	public int updateAlbum(Album album) throws SQLException {
-		int code = 0;
-		String query = "UPDATE MusicPlaylistdb.Album SET imageUrl = ? WHERE id = ?";
-		PreparedStatement pstatement = null;
-		try {
-			pstatement = con.prepareStatement(query);
-			pstatement.setString(1, album.getImageUrl());
-			pstatement.setInt(2, album.getId());
-			code = pstatement.executeUpdate();
-
-		} catch (SQLException e) {
-			throw new SQLException(e);
-		} finally {
-			try {
-				pstatement.close();
-			} catch (Exception e1) {
-
-			}
-		}
-		return code;
-	}
 	
 	public ArrayList<Album> findAllUserAlbumsById(int userId) throws SQLException{
 		ArrayList<Album> albums = new ArrayList<Album>();

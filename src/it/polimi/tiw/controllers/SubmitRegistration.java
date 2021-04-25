@@ -22,6 +22,8 @@ import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.UserDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.ErrorType;
+import it.polimi.tiw.utils.PathUtils;
 import it.polimi.tiw.utils.TymeleafHandler;
 
 
@@ -45,11 +47,7 @@ public class SubmitRegistration extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		//forward to register page
-		ServletContext servletContext = getServletContext();
-		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-		String path = "/WEB-INF/Templates/Register.html";
-		templateEngine.process(path, ctx, response.getWriter());
-		
+		forward(request, response, PathUtils.REGISTER_PAGE);
 		
 	}
 
@@ -66,25 +64,21 @@ public class SubmitRegistration extends HttpServlet {
 		if(username == null || username.isEmpty() || email == null || email.isEmpty() ||
 				password == null|| password.isEmpty() || name == null || name.isEmpty() ||
 				surname == null || name.isEmpty()) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing registration parameters");
+			forwardToErrorPage(request, response, ErrorType.REGISTRATION_BAD_PARAMATERS.getMessage());
 			return;
 		}
 		
 		if (password.length() < 4) {
 			//return error to Registration.html
-			ServletContext servletContext = getServletContext();
-			final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-			String msg = "Password must be greater or equals than 4";
-			ctx.setVariable("registrationError", msg);
-			String path = "/WEB-INF/Templates/Register.html";
-			templateEngine.process(path, ctx, response.getWriter());
+			request.setAttribute("registrationWarning", ErrorType.PASSWORD_LENGTH_ERROR.getMessage());
+			forward(request, response, PathUtils.LOGIN_PAGE);
 			return;
 			
 			//guardare quando fare il return durante il forward dei template
 		}
 		
 		UserDAO userDAO = new UserDAO(connection);
-		User user = new User(username, email, password, name, surname);
+		User user = new User(username, email.toLowerCase(), password, name, surname);
 		
 		//creation user
 		int created = 0;
@@ -92,24 +86,45 @@ public class SubmitRegistration extends HttpServlet {
 			//return 0 if the user is already creted (email is unique identifier)
 			created = userDAO.createUser(user);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating user");
+			forwardToErrorPage(request, response, ErrorType.CREATING_USER_ERROR.getMessage());
 			return;
 		}
 		
 		//redirect to submit login with message if we are registred
-		String path = "SubmitLogin";		
-		String msg;
 		if (created == 0) {
-			msg = "You are already registred with the email: " + user.getEmail() + ". Login now!";			
-		}else {
-			msg = "Now you are registred! Login with the same credential";
+			request.setAttribute("registrationWarning", ErrorType.ALREADY_REGISTRED.getMessage() + ": " + user.getEmail());
+			forward(request, response, PathUtils.REGISTER_PAGE);
+
 		}
 		
-		response.sendRedirect(path+"?logout=" + msg);
+		int idUser;
+		try {
+			idUser = userDAO.findIdOfUserByEmail(user.getEmail());
+		} catch (SQLException e) {
+			e.printStackTrace();
+			forwardToErrorPage(request, response, ErrorType.FINDING_USER_ERROR.getMessage());
+			return;
+		}
+		user.setId(idUser);
 		
+		//adding user to session
+		HttpSession session = request.getSession(true);
+		session.setAttribute("user", user);
+		response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
+				
+	}
+	
+	private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
 		
-		
+	}
+	
+	private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, String error) throws ServletException, IOException{
+		request.setAttribute("error", error);
+		forward(request, response, PathUtils.ERROR_PAGE);
+		return;
 	}
 	
 	public void destroy() {

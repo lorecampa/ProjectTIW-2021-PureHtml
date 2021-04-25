@@ -17,12 +17,15 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.WebContext;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.PlaylistDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.ErrorType;
+import it.polimi.tiw.utils.PathUtils;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
@@ -47,8 +50,8 @@ public class CreatePlaylist extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//nothing
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		//redirect to home page
+		response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
 	}
 
 	
@@ -66,7 +69,7 @@ public class CreatePlaylist extends HttpServlet {
 		
 		
 		if (playlistName == null || playlistName.isEmpty()) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Missing name playlist parameter");
+			forwardToErrorPage(request, response, ErrorType.PLAYLIST_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
@@ -76,20 +79,32 @@ public class CreatePlaylist extends HttpServlet {
 			//return 0 if playlist is already present
 			created = playlistDAO.createPlaylist(playlistName, user.getId());
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating playlist");
+			forwardToErrorPage(request, response, ErrorType.CREATING_PLAYLIST_ERROR.getMessage());
 			return;
 		}
 		
-		String path = "GetHomePage";
-		String msg = "";
+		
 		if (created == 0) {
-			msg += "?errorCreatePlaylist=Playlist already present in you list";	
+			session.setAttribute("playlistWarning", ErrorType.PLAYLIST_ALREADY_PRESENT);
 		}
-		response.sendRedirect("GetHomePage"+msg);
+		
+		
+		response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
 
+	}
+	
+	
+	private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
 		
-		
+	}
+	
+	private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, String error) throws ServletException, IOException{
+		request.setAttribute("error", error);
+		forward(request, response, PathUtils.ERROR_PAGE);
+		return;
 	}
 	
 	public void destroy() {

@@ -16,14 +16,14 @@ public class UserDAO {
 	}
 	
 	
-	public int findIdOfUserByUsername(String username) throws SQLException {
+	public int findIdOfUserByEmail(String email) throws SQLException {
 		int id;
-		String query = "SELECT id FROM MusicPlaylistdb.user WHERE username = ?";
+		String query = "SELECT id FROM MusicPlaylistdb.user WHERE email = ?";
 		ResultSet result = null;
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);
-			pstatement.setString(1, username);
+			pstatement.setString(1, email);
 			result = pstatement.executeQuery();
 			if (result.next()) {
 				id = result.getInt("id");

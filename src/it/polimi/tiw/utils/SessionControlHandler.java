@@ -18,9 +18,7 @@ public class SessionControlHandler {
 		HttpSession session = request.getSession(false);
 		if (session == null || session.getAttribute("user") == null) {
 			//session's over
-			String path = "SubmitLogin";
-			String msg = "Session is expired, please login again";
-			response.sendRedirect(path+"?logout=" + msg);
+			response.sendRedirect(request.getServletContext().getContextPath() + PathUtils.LOGIN_PAGE);
 			return false;
 		}
 		return true;

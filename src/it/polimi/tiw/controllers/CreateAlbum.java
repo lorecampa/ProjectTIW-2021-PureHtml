@@ -33,6 +33,8 @@ import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.AlbumDAO;
 import it.polimi.tiw.dao.SongDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.ErrorType;
+import it.polimi.tiw.utils.PathUtils;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
@@ -92,7 +94,7 @@ public class CreateAlbum extends HttpServlet {
 				yearString == null || yearString.isEmpty() ||
 				genreString == null || genreString.isEmpty()) {
 			
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad parametres");
+			forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
@@ -101,92 +103,75 @@ public class CreateAlbum extends HttpServlet {
 			Integer yearInteger = Integer.parseInt(yearString);
 			// year limit
 			if (yearInteger < 0 || yearInteger > 3000) {
-				//return error to home page
-				String msg = "The year must be bewteween 0 and 3000";
-				String path = "GetHomePage";
-				response.sendRedirect(path + "?errorCreateAlbum="+msg);
+				forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
 				return;
 			}
 			year = yearInteger.shortValue();
 		} catch (NumberFormatException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing year when creating song");
+			forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
 		Genre genre = Genre.fromString(genreString);
 		if (genre.getDisplayName().equals("Not found")){
-			//return error to home page
-			String msg = "Genre is not from list";
-			String path = "GetHomePage";
-			response.sendRedirect(path + "?errorCreateAlbum="+msg);
+			forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
 			return;
 		}
+		
 		
 		Part imagePart = request.getPart("picture");
 		
 		// We first check the parameter needed is present
 		if (imagePart == null || imagePart.getSize() <= 0) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing file in request!");
+			forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
 		String contentType = imagePart.getContentType();
 		//check if the file is an image
 		if (!contentType.startsWith("image")) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Image file format not permitted");
+			redirectToHomePage(session, response, ErrorType.IMAGE_TYPE_NOT_PERMITTED.getMessage());
 			return;
 		}
 		
+		//get image file extension
+		String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
+		int indexImage = imageFileName.lastIndexOf('.');
+		String imageExt = imageFileName.substring(indexImage);
 		
-		
-		Album album = new Album(title, interpreter, year, genre, user.getId(), "LAZY_LOADING");
+		Album album = new Album(title, interpreter, year, genre, user.getId(), null);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		
-		int albumCreated;
+		int created;
 		try {
 			//if albumCreated is 0 then it was already present in our database (title, interpreter, year, genre, idCreator) is a unique constraint
-			albumCreated = albumDAO.createAlbum(album);
+			created = albumDAO.createAlbum(album, imageExt);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating album");
+			forwardToErrorPage(request, response, ErrorType.CREATING_ALBUM_ERROR.getMessage());
 			return;
 		}
-		if(albumCreated == 0) {
+		if(created == 0) {
 			//album was already created
-			String msg = "Album already present in your list";
-			String path = "GetHomePage";
-			response.sendRedirect(path + "?errorCreateAlbum="+msg);
+			redirectToHomePage(session, response, ErrorType.ALBUM_ALREADY_PRESENT.getMessage());
 			return;
 		}
 		
-			
-		//now that album is created
+		//setting album id
 		try {
-			//find id of album
 			album.setId(albumDAO.findAlbumId(album));
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding album");
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+			redirectToHomePage(session, response, ErrorType.FINDING_ALBUM_ERROR.getMessage());
 			return;
 		}
+		
 		
 		
 		//control type and then make some controls
+		String imageId = "" + album.getId() + "-" + album.getIdCreator() + imageExt;
 		
-		String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
-		int indexImage = imageFileName.lastIndexOf('.');
-		String imageExt = "";
-		imageExt = imageFileName.substring(indexImage);
-		String imageId = "" + album.getIdCreator() + "-" + album.getId() + imageExt;
-		
-		//imagePath and audioPath refers to the path initialized in the init part
+		//imagePath refers to the path initialized in the init part
 		String imageOutputPath = imagePath + imageId;
-		
-		System.out.println("ImageOutputPath: " + imageOutputPath);
-
-		
-		
 		
 		File imageFile = new File(imageOutputPath);
 		
@@ -196,41 +181,33 @@ public class CreateAlbum extends HttpServlet {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			try {
-				albumDAO.removeInitialAlbum(album.getId());
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue removing initial album after error in saving image");
-				return;
-			}
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue saving album image in: " + imagePath);
+			forwardToErrorPage(request, response, ErrorType.INTERNAL_SERVER_ERROR.getMessage());
 			return;
 			
 		}
 		
-		album.setImageUrl(imageId);
 		
+		String msg = "Album " + album.getTitle() + " created succesfully";	
+		redirectToHomePage(session, response, msg);
 		
-		int updateAlbum;
-		try {
-			updateAlbum  = albumDAO.updateAlbum(album);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue updating song path files");
-			return;
-		}
+	}
+	
+	private void redirectToHomePage(HttpSession session, HttpServletResponse response, String message) throws ServletException, IOException{
+		session.setAttribute("albumWarning", message);
+		response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
+	}
+	
+	private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
 		
-		
-		String msg;
-		if (updateAlbum == 0) {
-			msg = "Album: " + album.getId() + " image was not update. No images in database";
-		}else {
-			msg = "Album " + album.getTitle() + " created succesfully";
-		}
-		
-		String path = "GetHomePage";
-		response.sendRedirect(path + "?errorCreateAlbum="+msg);
-		
+	}
+	
+	private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, String error) throws ServletException, IOException{
+		request.setAttribute("error", error);
+		forward(request, response, PathUtils.ERROR_PAGE);
+		return;
 	}
 	
 	public void destroy() {

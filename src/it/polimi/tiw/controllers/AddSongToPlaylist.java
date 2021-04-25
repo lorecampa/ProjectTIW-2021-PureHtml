@@ -15,12 +15,22 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.WebContext;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 
+import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Match;
+import it.polimi.tiw.beans.Playlist;
+import it.polimi.tiw.beans.Song;
+import it.polimi.tiw.beans.User;
+import it.polimi.tiw.dao.AlbumDAO;
 import it.polimi.tiw.dao.MatchDAO;
+import it.polimi.tiw.dao.PlaylistDAO;
+import it.polimi.tiw.dao.SongDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.ErrorType;
+import it.polimi.tiw.utils.PathUtils;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
@@ -51,6 +61,7 @@ public class AddSongToPlaylist extends HttpServlet {
 		//session control
 		if(!SessionControlHandler.isSessionValidate(request, response))	return;
 		HttpSession session = request.getSession();
+		User user = (User) session.getAttribute("user");
 		
 		String idSongString = request.getParameter("songs");
 		String idPlaylistString = request.getParameter("idPlaylist");
@@ -66,11 +77,43 @@ public class AddSongToPlaylist extends HttpServlet {
 			currentSlide = Integer.parseInt(currentSlideString);
 			
 		}catch(NumberFormatException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error parsing idSong or idPlaylist selected");
+			forwardToErrorPage(request, response, ErrorType.SONG_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
+		//finding song bean
+		SongDAO songDAO = new SongDAO(connection);
+		Song song;
+		try {
+			song = songDAO.findSongById(idSong);
+		} catch (SQLException e1) {
+			forwardToErrorPage(request, response, ErrorType.FINDING_SONG_ERROR.getMessage());
+			return;
+		}
+		//finding album bean
+		AlbumDAO albumDAO = new AlbumDAO(connection);
+		Album album;
+		try {
+			album = albumDAO.findAlumById(song.getIdAlbum());
+		} catch (SQLException e2) {
+			forwardToErrorPage(request, response, ErrorType.FINDING_ALBUM_ERROR.getMessage());
+			return;
+		}
+		//finding playlist bean
+		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
+		Playlist playlist;
+		try {
+			playlist = playlistDAO.findPlaylistById(idPlaylist);
+		} catch (SQLException e1) {
+			forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
+			return;
+		}
+		
+		//control autentity
+		if (playlist.getIdCreator() != user.getId() || album.getIdCreator() != user.getId()) {
+			forwardToErrorPage(request, response, ErrorType.SONG_NOT_EXSIST.getMessage());
+			return;
+		}
 		
 		Match match = new Match(idSong, idPlaylist);
 		MatchDAO matchDAO = new MatchDAO(connection);
@@ -79,18 +122,28 @@ public class AddSongToPlaylist extends HttpServlet {
 			//return zero if the match is already present
 			matchCreated = matchDAO.createMatch(match);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating match");
+			forwardToErrorPage(request, response, ErrorType.ADDING_SONG_ERROR.getMessage());
 			return;
 		}
 		
 		if (matchCreated == 0) {
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Match was already present");
-		}else {
-			response.sendRedirect("GetPlaylist?idPlaylist="+idPlaylist+"&currentSlide="+currentSlide);
+			session.setAttribute("addPlaylistWarning", "Song is already present in your playlist");
 		}
+		response.sendRedirect("GetPlaylist?idPlaylist="+idPlaylist+"&currentSlide="+currentSlide);
+				
+	}
+	
+	private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
 		
-		
+	}
+	
+	private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, String error) throws ServletException, IOException{
+		request.setAttribute("error", error);
+		forward(request, response, PathUtils.ERROR_PAGE);
+		return;
 	}
 	
 	

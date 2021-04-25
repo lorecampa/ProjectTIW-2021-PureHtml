@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>ErrorPage</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+</head>
+<body>
+	<h1>ERROR PAGE</h1>
+	
+	<p style="color:red" th:text=" ${error}">error</p>
+	
+	
+	
+	<br> <a th:href="@{/SubmitRegistration}">Are you still not registered? Do it now</a>
+
+	
+</body>
+</html>

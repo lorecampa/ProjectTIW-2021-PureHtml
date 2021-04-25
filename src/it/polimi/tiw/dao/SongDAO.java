@@ -17,15 +17,19 @@ public class SongDAO {
 	}
 	
 	
-	//create initial song, return 0 if song is already present (title, idAlbum) unique constraint
-	public int createSong(Song song) throws SQLException {
+	//create song, return 0 if song is already present (title, idAlbum) unique constraint
+	public int createSong(Song song, String imageExt) throws SQLException {
 		int code = 0;
-		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Song` (`title`, `songUrl`, `idAlbum`) VALUES (?, ?, ?)";
+		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Song` (`title`, `songUrl`, `idAlbum`)\n"
+				+ "VALUES (\n"
+				+ "?,\n"
+				+ "(SELECT CONCAT ( (SELECT (coalesce(MAX(s1.id), 0) + 1) FROM MusicPlaylistdb.Song as s1), ?)),\n"
+				+ "?)";
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);
 			pstatement.setString(1, song.getTitle());
-			pstatement.setString(2, song.getSongUrl());
+			pstatement.setString(2, "-" + song.getIdAlbum() + imageExt);
 			pstatement.setInt(3, song.getIdAlbum());
 			code = pstatement.executeUpdate();
 
@@ -41,6 +45,7 @@ public class SongDAO {
 		
 		return code;
 	}
+		
 	
 	public int findSongId(Song song) throws SQLException {
 		int idResult = -1;
@@ -79,49 +84,8 @@ public class SongDAO {
 	
 	}
 	
-	public int removeInitialSong(Song song) throws SQLException {
-		int code = 0;
-		String query = "DELETE FROM MusicPlaylistdb.Song WHERE id = ?";
-		PreparedStatement pstatement = null;
-		try {
-			pstatement = con.prepareStatement(query);
-			pstatement.setInt(1, song.getId());
-			code = pstatement.executeUpdate();
-
-		} catch (SQLException e) {
-			throw new SQLException(e);
-		} finally {
-			try {
-				pstatement.close();
-			} catch (Exception e1) {
-
-			}
-		}
-		return code;
-	}
 	
-	
-	public int updateSong(Song song) throws SQLException {
-		int code = 0;
-		String query = "UPDATE MusicPlaylistdb.Song SET songUrl = ? WHERE id = ?";
-		PreparedStatement pstatement = null;
-		try {
-			pstatement = con.prepareStatement(query);
-			pstatement.setString(1, song.getSongUrl());
-			pstatement.setInt(2, song.getId());
-			code = pstatement.executeUpdate();
 
-		} catch (SQLException e) {
-			throw new SQLException(e);
-		} finally {
-			try {
-				pstatement.close();
-			} catch (Exception e1) {
-
-			}
-		}
-		return code;
-	}
 	
 	//return null if song is not present
 	public Song findSongById(int songId) throws SQLException {

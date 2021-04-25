@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.WebContext;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 
@@ -32,6 +33,8 @@ import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.AlbumDAO;
 import it.polimi.tiw.dao.SongDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.ErrorType;
+import it.polimi.tiw.utils.PathUtils;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
@@ -87,109 +90,94 @@ public class CreateSong extends HttpServlet {
 		if (title == null || title.isEmpty() || 
 				albumIdString == null || albumIdString.isEmpty()) {
 			
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad parametres");
+			forwardToErrorPage(request, response, ErrorType.SONG_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
 		int albumId;
 		try {
 			albumId = Integer.parseInt(albumIdString);
-			
 		} catch (NumberFormatException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing album when creating song");
+			forwardToErrorPage(request, response, ErrorType.SONG_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
-		System.out.println("Albumid: " + albumId);
 		
+		//find album by id
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		Album album;
 		try {
 			album = albumDAO.findAlumById(albumId);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error finding album in database");
+			forwardToErrorPage(request, response, ErrorType.FINDING_ALBUM_ERROR.getMessage());
 			return;
 		}
 		//if idAlbum is doesn't belong to the user
 		if (album == null || (album.getIdCreator() != user.getId())) {
-			session.invalidate();
-			String path = "SubmitLogin";
-			String msg = "You are trying to access wrong information. Login again to identify yourself ";
-			response.sendRedirect(path+"?logout=" + msg);
+			forwardToErrorPage(request, response, ErrorType.ALBUM_NOT_EXIST.getMessage());
 			return;
 		}
+		
 	
 		
 		Part audioPart = request.getPart("audio");
 		
 		// We first check the parameter needed is present
 		if (audioPart == null || audioPart.getSize() <= 0){
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing file in request!");
+			forwardToErrorPage(request, response, ErrorType.SONG_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
 		String contentType = audioPart.getContentType();
-		//check if the file is an image
+		//check if the file is an audio
 		if (!contentType.startsWith("audio")) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Audio file format not permitted");
+			forwardToErrorPage(request, response, ErrorType.AUDIO_TYPE_NOT_PERMITTED.getMessage());
 			return;
 		}
 		
-		
+		//find audio extension
+		String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
+		int indexAudio = audioFileName.lastIndexOf('.');
+		String audioExt = "";
+		audioExt = audioFileName.substring(indexAudio);
 	
-		//create initial song		
-		Song song = new Song(title, "LAZY_LOADING", album.getId());
+		//create song (audioUrl is set by the database)
+		Song song = new Song(title, null, album.getId());
 		SongDAO songDAO = new SongDAO(connection);
 		
 		
 		//create initial song
-		int songCreated;
+		int created;
 		try {
 			//return 0 if the song was already present (title, albumId) are a unique constraint
-			songCreated = songDAO.createSong(song);
+			created = songDAO.createSong(song, audioExt);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue creating initial song");
+			forwardToErrorPage(request, response, ErrorType.CREATING_SONG_ERROR.getMessage());
 			return;
 		}
 		
-		if (songCreated == 0) {
+		if (created == 0) {
 			//return error to home page
-			String msg = "Song already present in your list";
-			String path = "GetHomePage";
-			response.sendRedirect(path + "?errorCreateSong="+msg);
+			redirectToHomePage(session, response, ErrorType.SONG_ALREADY_PRESENT.getMessage());
 			return;
 		}
 		
 		
-		//find song id that was already created
+		//find song id that is just created
 		try {
 			song.setId(songDAO.findSongId(song));
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding song after creation");
+			forwardToErrorPage(request, response, ErrorType.FINDING_SONG_ERROR.getMessage());
 			return;
 		}
 		
+			
 		
+		String audioId = "" + song.getId() + "-" + song.getIdAlbum() + audioExt;
 		
-		//control type and then make some controls
-		
-		String audioFileName = Paths.get(audioPart.getSubmittedFileName()).getFileName().toString();
-		int indexAudio = audioFileName.lastIndexOf('.');
-		String audioExt = "";
-		
-		audioExt = audioFileName.substring(indexAudio);
-		
-		String audioId = "" + song.getIdAlbum() + "-" + song.getId() + audioExt;
-		
-		//imagePath and audioPath refers to the path initialized in the init part
+		//audioPath refers to the path initialized in the init part
 		String audioOutputPath = audioPath + audioId;
-		
-		System.out.println("AudioOutputPath: " + audioOutputPath);
-
-				
+						
 		File audioFile = new File(audioOutputPath);
 		
 		
@@ -199,41 +187,32 @@ public class CreateSong extends HttpServlet {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			
-			try {
-				songDAO.removeInitialSong(song);
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue removing initial song after error in saving audio");
-				return;
-			}
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error saving audio in: " + audioPath);
+			forwardToErrorPage(request, response, ErrorType.INTERNAL_SERVER_ERROR.getMessage());
 			return;
-			
 		}
 	
-		
-		song.setSongUrl(audioId);
-		int updateSong;
-		try {
-			updateSong = songDAO.updateSong(song);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue updating song audio path files");
-			return;
-		}
-		
-		String msg;
-		if (updateSong == 0) {
-			msg = "Song: " + song.getId() + " audio was not update. No audio in database";
-		}else {
-			msg = "Song " + song.getTitle() + " created succesfully";
-		}
-		
-		String path = "GetHomePage";
-		response.sendRedirect(path + "?errorCreateSong="+msg);
+		String msg = "Song " + song.getTitle() + " created succesfully";
+		redirectToHomePage(session, response, msg);
 		
 		
+	}
+	
+	private void redirectToHomePage(HttpSession session, HttpServletResponse response, String message) throws ServletException, IOException{
+		session.setAttribute("songWarning", message);
+		response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
+	}
+	
+	private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
+		
+	}
+	
+	private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, String error) throws ServletException, IOException{
+		request.setAttribute("error", error);
+		forward(request, response, PathUtils.ERROR_PAGE);
+		return;
 	}
 	
 	public void destroy() {

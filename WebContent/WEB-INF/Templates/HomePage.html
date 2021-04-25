@@ -49,7 +49,7 @@
 	<h1>Create Playlist</h1>
 		
 	<form method= "POST" th:action="@{/CreatePlaylist}">
-		<p style="color:red" th:text=" ${errorCreatePlaylist}">error</p>
+		<p style="color:red" th:if = "${createPlaylistWarning}" th:text=" ${createPlaylistWarning}">error</p>
 		<label>Title </label><input name = "name" type="text" required><br>
 		<input value = "create" type = "submit">
 	</form>
@@ -57,7 +57,7 @@
 	<br>
 	<h1>Create Album</h1>
 	<form method= "POST" th:action="@{/CreateAlbum}" enctype="multipart/form-data">
-		<p style="color:red" th:text=" ${errorCreateAlbum}">error</p>
+		<p style="color:red" th:if = "${createAlbumWarning}" th:text=" ${createAlbumWarning}">error</p>
 		<label>Title</label> <input name = "title" id="title" type="text" required><br>
 		<label>Interpreter</label> <input name = "interpreter" type="text" required><br>
 		<label>Year</label> <input name = "year" type="number" min=0 required><br>
@@ -82,7 +82,7 @@
 	
 	<h1>Create Song</h1>
 	<form method= "POST" th:action="@{/CreateSong}" enctype="multipart/form-data">
-		<p style="color:red" th:text=" ${errorCreateSong}">error</p>
+		<p style="color:red" th:if = "${createSongWarning}" th:text=" ${createSongWarning}">error</p>
 		<label>Title</label> <input name = "title" id="title" type="text" required><br>
 		<label>Track file </label><input name = "audio" type="file"required><br>
 		

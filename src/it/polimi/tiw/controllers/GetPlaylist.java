@@ -29,9 +29,6 @@ import it.polimi.tiw.dao.AlbumDAO;
 import it.polimi.tiw.dao.MatchDAO;
 import it.polimi.tiw.dao.PlaylistDAO;
 import it.polimi.tiw.dao.SongDAO;
-import it.polimi.tiw.utils.ConnectionHandler;
-import it.polimi.tiw.utils.SessionControlHandler;
-import it.polimi.tiw.utils.TymeleafHandler;
 import it.polimi.tiw.utils.*;
 
 
@@ -71,11 +68,12 @@ public class GetPlaylist extends HttpServlet {
 			idPlaylist = Integer.parseInt(idPlaylistString);
 			currentSlide = Integer.parseInt(currentSlideString);
 		}catch (NumberFormatException e) {
-			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Error parsing idPlaylist or currentSlide query string parameter");
+			forwardToErrorPage(request, response, ErrorType.PLAYLIST_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
-		
+		//TODO
+		//cambiare la logica delle 5 canzoni e farlo nel database
 		
 				 
 		//finding playlist
@@ -84,21 +82,15 @@ public class GetPlaylist extends HttpServlet {
 		try {
 			playlist = playlistDAO.findPlaylistById(idPlaylist);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue getting playlist information");
+			forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
 			return;
 		}
 		
 		//control that the playlist belongs to the user session
-		if(playlist == null || (playlist.getIdCreator() != user.getId()) || currentSlide < 0) {
-			session.invalidate();
-			String path = "SubmitLogin";
-			String msg = "You are trying to access wrong information. Login again to identify yourself ";
-			response.sendRedirect(path+"?logout=" + msg);
+		if(playlist == null || (playlist.getIdCreator() != user.getId())) {
+			forwardToErrorPage(request, response, ErrorType.PLAYLIST_NOT_EXSIST.getMessage());
 			return;
 		}
-		
-		
 		
 		
 		MatchDAO matchDAO = new MatchDAO(connection);
@@ -108,8 +100,7 @@ public class GetPlaylist extends HttpServlet {
 		try {
 			playlistSongIds = matchDAO.findAllSongIdOfPlaylist(idPlaylist, idUser);
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue retrieving playlist song information");
+			forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
 			return;
 		}
 		
@@ -120,7 +111,7 @@ public class GetPlaylist extends HttpServlet {
 		ArrayList<Album> albums = new ArrayList<>();
 		Song song;
 		Album album;
-		//find all songs in playlist selected
+		//find all songs and albums bean in playlist selected
 		for(int id: playlistSongIds) {
 			try {
 				//return null if song is not present
@@ -134,12 +125,9 @@ public class GetPlaylist extends HttpServlet {
 				}
 				
 			} catch (SQLException e) {
-				e.printStackTrace();
-				response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retrieving playlist song or album information");
+				forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
 				return;
 			}
-			
-			
 		}
 		
 		
@@ -155,8 +143,7 @@ public class GetPlaylist extends HttpServlet {
 				}
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding user's songs");
+			forwardToErrorPage(request, response, ErrorType.FINDING_USER_SONG_ERROR.getMessage());
 			return;
 		}		
 		
@@ -219,6 +206,19 @@ public class GetPlaylist extends HttpServlet {
 		
 	}
 
+	
+	private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
+		
+	}
+	
+	private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, String error) throws ServletException, IOException{
+		request.setAttribute("error", error);
+		forward(request, response, PathUtils.ERROR_PAGE);
+		return;
+	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);

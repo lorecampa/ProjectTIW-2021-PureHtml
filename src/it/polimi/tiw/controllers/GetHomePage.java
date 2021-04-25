@@ -25,6 +25,8 @@ import it.polimi.tiw.dao.AlbumDAO;
 import it.polimi.tiw.dao.PlaylistDAO;
 import it.polimi.tiw.dao.UserDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
+import it.polimi.tiw.utils.ErrorType;
+import it.polimi.tiw.utils.PathUtils;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
@@ -54,58 +56,69 @@ public class GetHomePage extends HttpServlet {
 		User user = (User) session.getAttribute("user");
 		
 		
+		String playlistWarning = (String) session.getAttribute("playlistWarning");
+		if (playlistWarning != null) {
+			session.removeAttribute("playlistWarning");
+			request.setAttribute("createPlaylistWarning", playlistWarning);
+		}
+		
+		String albumWarning = (String) session.getAttribute("albumWarning");
+		if (albumWarning != null) {
+			session.removeAttribute("albumWarning");
+			request.setAttribute("createAlbumWarning", albumWarning);
+		}
+		
+		String songWarning = (String) session.getAttribute("songWarning");
+		if (songWarning != null) {
+			session.removeAttribute("songWarning");
+			request.setAttribute("createSongWarning", songWarning);
+		}
+		
+		
 		//Playlists information
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		ArrayList<Playlist> playlists = null;
 		try {
 			//return empty array if there are not playlists created
 			playlists = playlistDAO.findAllPlaylistByUserId(user.getId());
-			
 		} catch (SQLException e) {
-			//debug
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding playlist");
+			forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
+			return;
 		}
+		
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		ArrayList<Album> albums = new ArrayList<>();
 		try {
 			albums = albumDAO.findAllUserAlbumsById(user.getId());
 		} catch (SQLException e) {
-			//debug
-			e.printStackTrace();
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Issue finding users albums");
+			forwardToErrorPage(request, response, ErrorType.FINDING_ALBUM_ERROR.getMessage());
+			return;
 		}
 		
 		
-		String errorCreatePlaylist = request.getParameter("errorCreatePlaylist");
-		String errorCreateAlbum = request.getParameter("errorCreateAlbum");
-		String errorCreateSong = request.getParameter("errorCreateSong");
+		request.setAttribute("playlists", playlists);
+		request.setAttribute("userAlbums", albums);
+		
+		forward(request, response, PathUtils.HOME_PAGE);
 
-		
-		
-		String path = "/WEB-INF/Templates/HomePage.html";
-		ServletContext servletContext = getServletContext();
-		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-		ctx.setVariable("playlists", playlists);
-		ctx.setVariable("userAlbums", albums);
-
-		if (errorCreatePlaylist != null) {
-			ctx.setVariable("errorCreatePlaylist", errorCreatePlaylist);
-		}
-		if (errorCreateAlbum != null) {
-			ctx.setVariable("errorCreateAlbum", errorCreateAlbum);
-		}
-		if (errorCreateSong != null) {
-			ctx.setVariable("errorCreateSong", errorCreateSong);
-		}
-		
-
-		templateEngine.process(path, ctx, response.getWriter());
 	}
 
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
+	}
+	
+	private void forward(HttpServletRequest request, HttpServletResponse response, String path) throws ServletException, IOException{
+		ServletContext servletContext = getServletContext();
+		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
+		templateEngine.process(path, ctx, response.getWriter());
+		
+	}
+	
+	private void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, String error) throws ServletException, IOException{
+		request.setAttribute("error", error);
+		forward(request, response, PathUtils.ERROR_PAGE);
+		return;
 	}
 	
 	public void destroy() {

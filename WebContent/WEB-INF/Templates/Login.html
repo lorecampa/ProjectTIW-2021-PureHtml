@@ -8,12 +8,11 @@
 <body>
 	<h1>Welcome to Music Playlist application</h1>
 	
-	<p style="color:red" th:text=" ${logout}">logout succesfully</p>
+	<p style="color:red" th:if = "${loginWarnings}" th:text=" ${loginWarnings}">logout succesfully</p>
 	
 	<form method= "post" th:action="@{/SubmitLogin}">
-		<label>Username <input name = "username" type="text" required></label><br>
+		<label>Email <input name = "email" type="text" required></label><br>
 		<label>Password <input name = "password" type = "password" required></label><br>
-		
 		<input name = "login" type = "submit">
 	</form>
 	
