@@ -11,6 +11,8 @@
 	<span th:text = ${album.interpreter}> Interpreter</span><br>
 	<span th:text = ${album.year}> Year</span><br>
 	<span th:text = ${album.genre}> Genre</span><br>
+	<img  th:src="'ShowFile/image_' + ${album.imageUrl}" th:alt="${album.imageUrl}" width="150" height="100">
+	<br>
 	<audio controls>
   		<source th:src="'ShowFile/audio_' + ${song.songUrl}" type="audio/ogg">
   	</audio><br> 

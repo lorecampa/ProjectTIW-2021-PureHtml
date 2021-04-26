@@ -4,12 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
-
 import it.polimi.tiw.beans.Match;
-import it.polimi.tiw.beans.Playlist;
 
 public class MatchDAO {
 	private Connection con;
@@ -18,9 +14,10 @@ public class MatchDAO {
 		this.con = con;
 	}
 	
+	//return 0 if song already present in playlist (IGNORE STATEMENT)
 	public int createMatch(Match match) throws SQLException {
 		int code = 0;
-		String query = "INSERT INTO `MusicPlaylistdb`.`Match` (`idSong`, `idPlaylist`) VALUES (?, ?)";
+		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Match` (`idSong`, `idPlaylist`) VALUES (?, ?)";
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);
@@ -41,6 +38,7 @@ public class MatchDAO {
 		return code;
 	}
 	
+	//return empy array if there are not song in playlist
 	public ArrayList<Integer> findAllSongIdOfPlaylist(int idPlaylist, int userId) throws SQLException{
 		ArrayList<Integer> songIds = new ArrayList<>();
 		String query = "SELECT m.idSong\n"

@@ -12,19 +12,6 @@ public class Playlist {
 		super();
 	}
 	
-	public Playlist(int id, String title, int idCreator) {
-		super();
-		this.id = id;
-		this.title = title;
-		this.idCreator = idCreator;
-	}
-	
-	public Playlist(String title, int idCreator) {
-		super();
-		this.title = title;
-		this.idCreator = idCreator;
-	}
-	
 	public int getId() {
 		return id;
 	}

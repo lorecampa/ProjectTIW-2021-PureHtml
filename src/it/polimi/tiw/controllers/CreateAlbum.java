@@ -6,9 +6,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.util.Calendar;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -20,18 +19,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
-
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
-
 import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Genre;
-import it.polimi.tiw.beans.Song;
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.AlbumDAO;
-import it.polimi.tiw.dao.SongDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
 import it.polimi.tiw.utils.ErrorType;
 import it.polimi.tiw.utils.PathUtils;
@@ -44,12 +37,10 @@ import it.polimi.tiw.utils.TymeleafHandler;
 public class CreateAlbum extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private String imagePath = null;
-	private String audioPath = null;
 	private TemplateEngine templateEngine;
 	private Connection connection = null;
 
        
-    
     public CreateAlbum() {
         super();
     }
@@ -69,15 +60,14 @@ public class CreateAlbum extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//nothing
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		doPost(request, response);
 	}
 
 
 
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
+		//session control
 		if(!SessionControlHandler.isSessionValidate(request, response))	return;
 		
 		HttpSession session = request.getSession();
@@ -101,14 +91,16 @@ public class CreateAlbum extends HttpServlet {
 		Short year;
 		try {
 			Integer yearInteger = Integer.parseInt(yearString);
-			// year limit
-			if (yearInteger < 0 || yearInteger > 3000) {
-				forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
+			// year limit [0 - currentYear + 1]
+			int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+			if (yearInteger < 0 || yearInteger > currentYear + 1) {
+				String msg = "Year must be beetween [0 - " + (currentYear + 1) + "]";
+				redirectToHomePage(session, response, msg);
 				return;
 			}
 			year = yearInteger.shortValue();
 		} catch (NumberFormatException e) {
-			forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
@@ -120,7 +112,6 @@ public class CreateAlbum extends HttpServlet {
 		
 		
 		Part imagePart = request.getPart("picture");
-		
 		// We first check the parameter needed is present
 		if (imagePart == null || imagePart.getSize() <= 0) {
 			forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
@@ -144,14 +135,13 @@ public class CreateAlbum extends HttpServlet {
 		
 		int created;
 		try {
-			//if albumCreated is 0 then it was already present in our database (title, interpreter, year, genre, idCreator) is a unique constraint
+			//return 0 if already present in our database (title, interpreter, year, genre, idCreator) is a unique constraint
 			created = albumDAO.createAlbum(album, imageExt);
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.CREATING_ALBUM_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		if(created == 0) {
-			//album was already created
 			redirectToHomePage(session, response, ErrorType.ALBUM_ALREADY_PRESENT.getMessage());
 			return;
 		}
@@ -159,9 +149,8 @@ public class CreateAlbum extends HttpServlet {
 		//setting album id
 		try {
 			album.setId(albumDAO.findAlbumId(album));
-		} catch (SQLException e1) {
-			e1.printStackTrace();
-			redirectToHomePage(session, response, ErrorType.FINDING_ALBUM_ERROR.getMessage());
+		} catch (SQLException e) {
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
@@ -173,15 +162,15 @@ public class CreateAlbum extends HttpServlet {
 		//imagePath refers to the path initialized in the init part
 		String imageOutputPath = imagePath + imageId;
 		
+		//save image
 		File imageFile = new File(imageOutputPath);
-		
 		try (InputStream fileContent = imagePart.getInputStream()) {
 			
 			Files.copy(fileContent, imageFile.toPath());
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			forwardToErrorPage(request, response, ErrorType.INTERNAL_SERVER_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 			
 		}

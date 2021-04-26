@@ -2,16 +2,10 @@ package it.polimi.tiw.controllers;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.TreeMap;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.UnavailableException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -19,8 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
 import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Playlist;
 import it.polimi.tiw.beans.Song;
@@ -34,6 +26,7 @@ import it.polimi.tiw.utils.*;
 
 @WebServlet("/GetPlaylist")
 public class GetPlaylist extends HttpServlet {
+	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
 	private TemplateEngine templateEngine;
 	public final int NUM_SLIDE_SONG = 5;
@@ -53,36 +46,40 @@ public class GetPlaylist extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		//session control
 		if(!SessionControlHandler.isSessionValidate(request, response))	return;
+		
 		HttpSession session = request.getSession();
 		User user = (User) session.getAttribute("user");
 		int idUser = user.getId();
 		
-		//getting id playlist selected
+		String addSongWarning = (String) session.getAttribute("addSongToPlaylistWarning");
+		if (addSongWarning != null) {
+			session.removeAttribute("addSongToPlaylistWarning");
+			request.setAttribute("addSongWarning", addSongWarning);
+		}
+		
 		String idPlaylistString = request.getParameter("idPlaylist");
 		String currentSlideString = request.getParameter("currentSlide");
 		
 		int idPlaylist;
-		Integer currentSlide;
+		int currentSlide;
 		try {
 			idPlaylist = Integer.parseInt(idPlaylistString);
 			currentSlide = Integer.parseInt(currentSlideString);
 		}catch (NumberFormatException e) {
-			forwardToErrorPage(request, response, ErrorType.PLAYLIST_BAD_PARAMETERS.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
+
 		
-		//TODO
-		//cambiare la logica delle 5 canzoni e farlo nel database
-		
-				 
-		//finding playlist
+		//finding playlist bean
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		Playlist playlist;
 		try {
 			playlist = playlistDAO.findPlaylistById(idPlaylist);
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
@@ -96,11 +93,10 @@ public class GetPlaylist extends HttpServlet {
 		MatchDAO matchDAO = new MatchDAO(connection);
 		//list of song id present on the playlist
 		ArrayList<Integer> playlistSongIds = new ArrayList<>();
-		
 		try {
 			playlistSongIds = matchDAO.findAllSongIdOfPlaylist(idPlaylist, idUser);
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
@@ -117,15 +113,15 @@ public class GetPlaylist extends HttpServlet {
 				//return null if song is not present
 				song = songDAO.findSongById(id);
 				if (song != null) {
+					//return null if album is not present
 					album = albumDAO.findAlumById(song.getIdAlbum());
 					if (album != null) {
 						songs.add(song);
 						albums.add(album);
 					}
 				}
-				
 			} catch (SQLException e) {
-				forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
+				forwardToErrorPage(request, response, e.getMessage());
 				return;
 			}
 		}
@@ -134,16 +130,18 @@ public class GetPlaylist extends HttpServlet {
 		//lists of song that the user can select and add to the playlist
 		ArrayList<Song> userSongsSelection = new ArrayList<>();
 		try {
-			ArrayList<Song> tempSelection = new ArrayList<>();
+			ArrayList<Song> allUserSong = new ArrayList<>();
 			//return empty list if there are no songs
-			tempSelection = songDAO.findAllSongByUserId(idUser);
-			for (Song songTemp: tempSelection) {
+			allUserSong = songDAO.findAllSongByUserId(idUser);
+			
+			for (Song songTemp: allUserSong) {
 				if(!playlistSongIds.contains(songTemp.getId())) {
 					userSongsSelection.add(songTemp);
 				}
 			}
+			
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_USER_SONG_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}		
 		
@@ -152,10 +150,7 @@ public class GetPlaylist extends HttpServlet {
 		//control currentSlide correctness
 		int div = (sizeSongs / NUM_SLIDE_SONG);
 		if (currentSlide < 0 || currentSlide > div) {
-			session.invalidate();
-			String path = "SubmitLogin";
-			String msg = "You are trying to access wrong information. Login again to identify yourself ";
-			response.sendRedirect(path+"?logout=" + msg);
+			forwardToErrorPage(request, response, ErrorType.PLAYLIST_NOT_EXSIST.getMessage());
 			return;
 		}
 		
@@ -171,10 +166,11 @@ public class GetPlaylist extends HttpServlet {
 			isNextActive = true;
 		}
 	
-		if(currentSlide != 0) {
+		if(currentSlide > 0) {
 			isPrevActive = true;
 		}
 		
+		//debug
 		System.out.println("From Index: "+ fromIndex);
 		System.out.println("To Index: "+ toIndex);
 		System.out.println("prevActive: "+ isPrevActive);
@@ -183,26 +179,15 @@ public class GetPlaylist extends HttpServlet {
 
 
 		
+		request.setAttribute("playlist", playlist);
+		request.setAttribute("userSongsSelection", userSongsSelection);
+		request.setAttribute("songs", songs.subList(fromIndex, toIndex));
+		request.setAttribute("albums", albums.subList(fromIndex, toIndex));
+		request.setAttribute("isNextActive", isNextActive);
+		request.setAttribute("isPrevActive", isPrevActive);
+		request.setAttribute("currentSlide", currentSlide);
 		
-		
-		String path = "/WEB-INF/Templates/PlaylistPage";
-		ServletContext servletContext = getServletContext();
-		final WebContext ctx = new WebContext(request, response, servletContext, request.getLocale());
-		ctx.setVariable("playlist", playlist);
-		ctx.setVariable("userSongsSelection", userSongsSelection);
-		ctx.setVariable("songs", songs.subList(fromIndex, toIndex));
-		ctx.setVariable("albums", albums.subList(fromIndex, toIndex));
-		ctx.setVariable("isNextActive", isNextActive);
-		ctx.setVariable("isPrevActive", isPrevActive);
-		ctx.setVariable("currentSlide", currentSlide);
-
-		
-
-
-		
-	
-		
-		templateEngine.process(path, ctx, response.getWriter());
+		forward(request, response, PathUtils.PLAYLIST_PAGE);
 		
 	}
 

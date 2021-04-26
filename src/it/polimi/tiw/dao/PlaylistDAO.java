@@ -15,7 +15,7 @@ public class PlaylistDAO {
 		this.con = con;
 	}
 	
-	//return 0 if it doesn't modify anything
+	//return 0 if playlist already present (IGNORE STATEMENT)
 	public int createPlaylist(String title, int idCreator) throws SQLException {
 		int code = 0;
 		String query = "INSERT IGNORE INTO MusicPlaylistdb.Playlist (title, idCreator)   VALUES(?, ?)";
@@ -81,44 +81,8 @@ public class PlaylistDAO {
 		
 		return playlists;
 	}
-	public boolean isPlaylistAlreadyCreated(String title, int idCreator) throws SQLException {
-		boolean queryResult = false;
-		String query = "SELECT EXISTS (SELECT * FROM MusicPlaylistdb.Playlist WHERE idCreator = ? and title = ? )";
-		
-		ResultSet result = null;
-		PreparedStatement pstatement = null;
-		try {
-			pstatement = con.prepareStatement(query);
-			pstatement.setInt(1, idCreator);
-			pstatement.setString(2, title);
-			result = pstatement.executeQuery();
-			
-			if(result.next()) {
-				queryResult = result.getBoolean(1);
-			}
+	
 
-		} catch (SQLException e) {
-			throw new SQLException(e);
-		} finally {
-			try {
-				if (result != null) {
-					result.close();
-				}
-			} catch (Exception e1) {
-				throw new SQLException("Cannot close result");
-			}
-			try {
-				if (pstatement != null) {
-					pstatement.close();
-				}
-			} catch (Exception e1) {
-				throw new SQLException("Cannot close statement");
-			}
-		}
-		return queryResult;
-		
-		
-	}
 	
 	//return null if there is not a playlist with this id
 	public Playlist findPlaylistById(int playlistId) throws SQLException {

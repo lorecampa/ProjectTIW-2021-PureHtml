@@ -2,23 +2,16 @@ package it.polimi.tiw.controllers;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.UnavailableException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
-
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.UserDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
@@ -46,9 +39,7 @@ public class SubmitRegistration extends HttpServlet {
 
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//forward to register page
-		forward(request, response, PathUtils.REGISTER_PAGE);
-		
+		forward(request, response, PathUtils.REGISTER_PAGE);	
 	}
 
 	
@@ -71,7 +62,7 @@ public class SubmitRegistration extends HttpServlet {
 		if (password.length() < 4) {
 			//return error to Registration.html
 			request.setAttribute("registrationWarning", ErrorType.PASSWORD_LENGTH_ERROR.getMessage());
-			forward(request, response, PathUtils.LOGIN_PAGE);
+			forward(request, response, PathUtils.REGISTER_PAGE);
 			return;
 			
 			//guardare quando fare il return durante il forward dei template
@@ -86,26 +77,25 @@ public class SubmitRegistration extends HttpServlet {
 			//return 0 if the user is already creted (email is unique identifier)
 			created = userDAO.createUser(user);
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.CREATING_USER_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
-		//redirect to submit login with message if we are registred
 		if (created == 0) {
-			request.setAttribute("registrationWarning", ErrorType.ALREADY_REGISTRED.getMessage() + ": " + user.getEmail());
+			String msg = "Email: " + user.getEmail() + " is already registred";
+			request.setAttribute("registrationWarning", msg);
 			forward(request, response, PathUtils.REGISTER_PAGE);
 
 		}
 		
-		int idUser;
+		//find and set user id just created
 		try {
-			idUser = userDAO.findIdOfUserByEmail(user.getEmail());
+			user.setId(userDAO.findIdOfUserByEmail(user.getEmail()));
 		} catch (SQLException e) {
-			e.printStackTrace();
-			forwardToErrorPage(request, response, ErrorType.FINDING_USER_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
-		user.setId(idUser);
+		
 		
 		//adding user to session
 		HttpSession session = request.getSession(true);

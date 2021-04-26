@@ -3,10 +3,8 @@ package it.polimi.tiw.controllers;
 import java.io.IOException;
 import it.polimi.tiw.utils.ConnectionHandler;
 import it.polimi.tiw.utils.ErrorType;
-import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 import it.polimi.tiw.utils.PathUtils;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.servlet.ServletContext;
@@ -18,7 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.UserDAO;
 
@@ -43,16 +40,13 @@ public class SubmitLogin extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
 		HttpSession session = request.getSession(false);
-		//session's over
 		if (session == null || session.getAttribute("user") == null) {
-			
+			//session's over
 			forward(request, response, PathUtils.LOGIN_PAGE);
 		}else {
 			//otherwise go to home page
-			response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_PAGE);
+			response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
 		}
-		
-		
 	}
 
 
@@ -66,10 +60,11 @@ public class SubmitLogin extends HttpServlet {
 			return;
 		}
 		
-		//we want to control if the password is not correct or the user is still not registred
+		//finding
 		int idUser = 0;
 		UserDAO userDAO = new UserDAO(connection);
 		try {
+			//return -1 if email is not present
 			idUser = userDAO.findIdOfUserByEmail(email);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
@@ -77,10 +72,7 @@ public class SubmitLogin extends HttpServlet {
 
 		}
 		
-		
-		
 		if (idUser == -1) {
-			//username not present in db
 			request.setAttribute("loginWarnings", "Incorrect username");
 			forward(request, response, PathUtils.LOGIN_PAGE);
 			return;
@@ -89,6 +81,7 @@ public class SubmitLogin extends HttpServlet {
 		
 		boolean isPasswordCorrect = false;
 		try {
+			//return false if password is not correct
 			isPasswordCorrect = userDAO.isPasswordCorrect(idUser, password);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
@@ -96,15 +89,15 @@ public class SubmitLogin extends HttpServlet {
 		}
 		
 		if(!isPasswordCorrect) {
-			//password not correct
 			request.setAttribute("loginWarnings", "Incorrect password");
 			forward(request, response, PathUtils.LOGIN_PAGE);
 			return;
 		}
 		
 		//retrieve user bean
-		User user = null;
+		User user;
 		try {
+			//return null if user is not present
 			user = userDAO.findUserById(idUser);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());

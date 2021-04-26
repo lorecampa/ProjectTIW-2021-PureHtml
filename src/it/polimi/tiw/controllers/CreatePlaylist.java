@@ -2,25 +2,16 @@ package it.polimi.tiw.controllers;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.HashMap;
-
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.UnavailableException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
-
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.PlaylistDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
@@ -50,8 +41,7 @@ public class CreatePlaylist extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//redirect to home page
-		response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
+		doPost(request, response);
 	}
 
 	
@@ -63,26 +53,21 @@ public class CreatePlaylist extends HttpServlet {
 		User user = (User) session.getAttribute("user");
 		
 		String playlistName = request.getParameter("name");
-		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
-		
-		
-		
 		
 		if (playlistName == null || playlistName.isEmpty()) {
 			forwardToErrorPage(request, response, ErrorType.PLAYLIST_BAD_PARAMETERS.getMessage());
 			return;
 		}
 		
-		
+		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		int created = 0;
 		try {
 			//return 0 if playlist is already present
 			created = playlistDAO.createPlaylist(playlistName, user.getId());
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.CREATING_PLAYLIST_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
-		
 		
 		if (created == 0) {
 			session.setAttribute("playlistWarning", ErrorType.PLAYLIST_ALREADY_PRESENT);

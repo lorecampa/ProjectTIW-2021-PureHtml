@@ -12,7 +12,9 @@
 	
 	
 	
-	<br> <a th:href="@{/SubmitRegistration}">Are you still not registered? Do it now</a>
+	<br> <a th:if = "${session.user != null}" th:href="@{/GetHomePage}">Go back to your Home Page</a>
+	
+	<a th:if = "${session.user == null}" th:href="@{/LoginPage}">Go back to your Login Page</a>
 
 	
 </body>

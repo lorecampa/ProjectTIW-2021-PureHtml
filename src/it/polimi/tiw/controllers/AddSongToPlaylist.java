@@ -2,23 +2,16 @@ package it.polimi.tiw.controllers;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.UnavailableException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
-
 import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Match;
 import it.polimi.tiw.beans.Playlist;
@@ -53,13 +46,14 @@ public class AddSongToPlaylist extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		doPost(request, response);
 	}
 
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		//session control
 		if(!SessionControlHandler.isSessionValidate(request, response))	return;
+		
 		HttpSession session = request.getSession();
 		User user = (User) session.getAttribute("user");
 		
@@ -77,7 +71,7 @@ public class AddSongToPlaylist extends HttpServlet {
 			currentSlide = Integer.parseInt(currentSlideString);
 			
 		}catch(NumberFormatException e) {
-			forwardToErrorPage(request, response, ErrorType.SONG_BAD_PARAMETERS.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
@@ -86,8 +80,8 @@ public class AddSongToPlaylist extends HttpServlet {
 		Song song;
 		try {
 			song = songDAO.findSongById(idSong);
-		} catch (SQLException e1) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_SONG_ERROR.getMessage());
+		} catch (SQLException e) {
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		//finding album bean
@@ -95,8 +89,8 @@ public class AddSongToPlaylist extends HttpServlet {
 		Album album;
 		try {
 			album = albumDAO.findAlumById(song.getIdAlbum());
-		} catch (SQLException e2) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_ALBUM_ERROR.getMessage());
+		} catch (SQLException e) {
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		//finding playlist bean
@@ -104,8 +98,8 @@ public class AddSongToPlaylist extends HttpServlet {
 		Playlist playlist;
 		try {
 			playlist = playlistDAO.findPlaylistById(idPlaylist);
-		} catch (SQLException e1) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
+		} catch (SQLException e) {
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
@@ -119,15 +113,16 @@ public class AddSongToPlaylist extends HttpServlet {
 		MatchDAO matchDAO = new MatchDAO(connection);
 		int matchCreated;
 		try {
-			//return zero if the match is already present
+			//return 0 if the song is already present in the playlist
 			matchCreated = matchDAO.createMatch(match);
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.ADDING_SONG_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
+		//if song already present in playlist
 		if (matchCreated == 0) {
-			session.setAttribute("addPlaylistWarning", "Song is already present in your playlist");
+			session.setAttribute("addSongToPlaylistWarning", ErrorType.SONG_ALREADY_PRESENT);
 		}
 		response.sendRedirect("GetPlaylist?idPlaylist="+idPlaylist+"&currentSlide="+currentSlide);
 				

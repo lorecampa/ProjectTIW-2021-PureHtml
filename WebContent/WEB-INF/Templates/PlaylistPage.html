@@ -43,6 +43,7 @@
 	
 	<form method= "POST" th:action="@{/AddSongToPlaylist(idPlaylist=${playlist.id}, currentSlide = ${currentSlide})}">
 		<label>Songs created</label>
+		<p style="color:red" th:if = "${addSongWarning}" th:text=" ${addSongWarning}">error</p>
 		<select name= "songs" th:remove = "all-but-first" required>
 			<option th:each= "song: ${userSongsSelection}" th:value= "${song.id}" th:text ="${song.title}" > Title Song</option>
 			<option>Like a Rolling Stone</option>

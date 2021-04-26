@@ -2,12 +2,10 @@ package it.polimi.tiw.controllers;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.UnavailableException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -15,17 +13,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
-
 import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Playlist;
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.AlbumDAO;
 import it.polimi.tiw.dao.PlaylistDAO;
-import it.polimi.tiw.dao.UserDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
-import it.polimi.tiw.utils.ErrorType;
 import it.polimi.tiw.utils.PathUtils;
 import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
@@ -49,7 +42,7 @@ public class GetHomePage extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
+		//session control
 		if(!SessionControlHandler.isSessionValidate(request, response))	return;
 		
 		HttpSession session = request.getSession();
@@ -75,23 +68,24 @@ public class GetHomePage extends HttpServlet {
 		}
 		
 		
-		//Playlists information
+		//playlists information
 		PlaylistDAO playlistDAO = new PlaylistDAO(connection);
 		ArrayList<Playlist> playlists = null;
 		try {
 			//return empty array if there are not playlists created
 			playlists = playlistDAO.findAllPlaylistByUserId(user.getId());
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_PLAYLIST_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
+		//user albums
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		ArrayList<Album> albums = new ArrayList<>();
 		try {
 			albums = albumDAO.findAllUserAlbumsById(user.getId());
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_ALBUM_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		

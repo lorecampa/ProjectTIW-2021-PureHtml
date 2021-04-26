@@ -6,10 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.UnavailableException;
@@ -20,14 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
-
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ServletContextTemplateResolver;
-
 import it.polimi.tiw.beans.Album;
-import it.polimi.tiw.beans.Genre;
 import it.polimi.tiw.beans.Song;
 import it.polimi.tiw.beans.User;
 import it.polimi.tiw.dao.AlbumDAO;
@@ -68,15 +60,12 @@ public class CreateSong extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//nothing
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		doPost(request, response);
 	}
 
 
-
-	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
+		//session control
 		if(!SessionControlHandler.isSessionValidate(request, response))	return;
 		
 		HttpSession session = request.getSession();
@@ -98,18 +87,19 @@ public class CreateSong extends HttpServlet {
 		try {
 			albumId = Integer.parseInt(albumIdString);
 		} catch (NumberFormatException e) {
-			forwardToErrorPage(request, response, ErrorType.SONG_BAD_PARAMETERS.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
 		
-		//find album by id
+		//find album bean by id
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		Album album;
 		try {
+			//return null if not present
 			album = albumDAO.findAlumById(albumId);
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_ALBUM_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		//if idAlbum is doesn't belong to the user
@@ -144,15 +134,12 @@ public class CreateSong extends HttpServlet {
 		//create song (audioUrl is set by the database)
 		Song song = new Song(title, null, album.getId());
 		SongDAO songDAO = new SongDAO(connection);
-		
-		
-		//create initial song
 		int created;
 		try {
 			//return 0 if the song was already present (title, albumId) are a unique constraint
 			created = songDAO.createSong(song, audioExt);
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.CREATING_SONG_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
@@ -167,7 +154,7 @@ public class CreateSong extends HttpServlet {
 		try {
 			song.setId(songDAO.findSongId(song));
 		} catch (SQLException e) {
-			forwardToErrorPage(request, response, ErrorType.FINDING_SONG_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 		
@@ -187,7 +174,7 @@ public class CreateSong extends HttpServlet {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			forwardToErrorPage(request, response, ErrorType.INTERNAL_SERVER_ERROR.getMessage());
+			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
 	

@@ -5,10 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Genre;
-import it.polimi.tiw.beans.Song;
 
 
 public class AlbumDAO {
@@ -19,17 +17,18 @@ public class AlbumDAO {
 	}
 	
 	
-	//creates an album in db, return 0 if album was already present (IGNORE statement)
+	//return 0 if album was already present (IGNORE statement)
 	public int createAlbum(Album album, String imageExt) throws SQLException {
 		int code = 0;
-		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Album` (`title`, `interpreter`, `year`, `genre`, `idCreator`, `imageUrl`)\n"
+		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Album` (`id`, `title`, `interpreter`, `year`, `genre`, `idCreator`, `imageUrl`)\n"
 				+ "VALUES (\n"
+				+ "(SELECT (coalesce(MAX(a1.id), 0) + 1) FROM MusicPlaylistdb.Album as a1),\n"
 				+ "?,\n"
 				+ "?,\n"
 				+ "?,\n"
 				+ "?,\n"
 				+ "?,\n"
-				+ "(SELECT CONCAT( (SELECT (coalesce(MAX(a1.id), 0) + 1) FROM MusicPlaylistdb.Album as a1) , ?))\n"
+				+ "(SELECT CONCAT( (SELECT (coalesce(MAX(a2.id), 0) + 1) FROM MusicPlaylistdb.Album as a2) , ?))\n"
 				+ ")";
 		
 		PreparedStatement pstatement = null;
@@ -60,7 +59,7 @@ public class AlbumDAO {
 	}
 	
 	
-	//find album id given all information, return -1 if there's not album with those parametres
+	//return -1 if there's not album
 	public int findAlbumId(Album album) throws SQLException {
 		int idResult = -1;
 		String query = "SELECT id FROM MusicPlaylistdb.Album WHERE title = ? && interpreter = ? && year = ? && genre = ? && idCreator = ?";
@@ -103,6 +102,7 @@ public class AlbumDAO {
 	
 	}
 	
+	//return null if there is not album
 	public Album findAlumById(int albumId) throws SQLException {
 		Album album = null;
 		String query = "SELECT * FROM MusicPlaylistdb.Album WHERE id = ?";
@@ -147,7 +147,7 @@ public class AlbumDAO {
 	}
 	
 
-	
+	//return empty array if user has not albums
 	public ArrayList<Album> findAllUserAlbumsById(int userId) throws SQLException{
 		ArrayList<Album> albums = new ArrayList<Album>();
 		String query = "SELECT * FROM MusicPlaylistdb.Album WHERE idCreator = ?";
@@ -191,6 +191,8 @@ public class AlbumDAO {
 		}
 		return albums;
 	}
+	
+
 
 	
 }

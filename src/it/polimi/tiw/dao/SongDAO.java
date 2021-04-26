@@ -17,13 +17,14 @@ public class SongDAO {
 	}
 	
 	
-	//create song, return 0 if song is already present (title, idAlbum) unique constraint
+	//return 0 if song is already present (title, idAlbum) unique constraint
 	public int createSong(Song song, String imageExt) throws SQLException {
 		int code = 0;
-		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Song` (`title`, `songUrl`, `idAlbum`)\n"
+		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Song` (`id`, `title`, `songUrl`, `idAlbum`)\n"
 				+ "VALUES (\n"
+				+ "(SELECT (coalesce(MAX(s2.id), 0) + 1) FROM MusicPlaylistdb.Song as s2),\n"
 				+ "?,\n"
-				+ "(SELECT CONCAT ( (SELECT (coalesce(MAX(s1.id), 0) + 1) FROM MusicPlaylistdb.Song as s1), ?)),\n"
+				+ "(SELECT CONCAT ( (SELECT (coalesce(MAX(s2.id), 0) + 1) FROM MusicPlaylistdb.Song as s2), ?)),\n"
 				+ "?)";
 		PreparedStatement pstatement = null;
 		try {
@@ -46,7 +47,7 @@ public class SongDAO {
 		return code;
 	}
 		
-	
+	//return -1 if song is not present
 	public int findSongId(Song song) throws SQLException {
 		int idResult = -1;
 		String query = "SELECT id FROM MusicPlaylistdb.Song WHERE title = ? && idAlbum = ?";

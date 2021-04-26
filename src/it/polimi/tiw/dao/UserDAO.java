@@ -16,8 +16,9 @@ public class UserDAO {
 	}
 	
 	
+	//return -1 if user is not present
 	public int findIdOfUserByEmail(String email) throws SQLException {
-		int id;
+		int id = -1;
 		String query = "SELECT id FROM MusicPlaylistdb.user WHERE email = ?";
 		ResultSet result = null;
 		PreparedStatement pstatement = null;
@@ -27,11 +28,8 @@ public class UserDAO {
 			result = pstatement.executeQuery();
 			if (result.next()) {
 				id = result.getInt("id");
-			}else {
-				id = -1;
 			}
 			
-
 		} catch (SQLException e) {
 			throw new SQLException(e);
 		} finally {
@@ -54,8 +52,9 @@ public class UserDAO {
 		return id;
 	}
 	
+
 	public boolean isPasswordCorrect(int idUser, String password) throws SQLException {
-		boolean queryResult;
+		boolean queryResult = false;
 		String query = "SELECT EXISTS (SELECT * FROM user WHERE id = ? and password = ?)";
 		ResultSet result = null;
 		PreparedStatement pstatement = null;
@@ -68,8 +67,6 @@ public class UserDAO {
 			
 			if(result.getInt(1) == 1) {
 				queryResult = true;
-			}else {
-				queryResult = false;
 			}
 			
 
@@ -97,7 +94,7 @@ public class UserDAO {
 	
 	
 	
-	
+	//return 0 if user is already present (IGNORE STATEMENT) email unique constant
 	public int createUser(User user) throws SQLException {
 		int code = 0;
 		String query = "INSERT IGNORE INTO MusicPlaylistdb.user (username, email, password, name, surname)   VALUES(?, ?, ?, ?, ?);";
@@ -127,8 +124,9 @@ public class UserDAO {
 		return code;
 	}
 	
+	//return null if user is not present
 	public User findUserById(int idUser) throws SQLException {
-		User user;
+		User user = null;
 		String query = "SELECT * FROM MusicPlaylistdb.User WHERE id = ?";
 		ResultSet result = null;
 		PreparedStatement pstatement = null;
@@ -144,8 +142,6 @@ public class UserDAO {
 				String name = result.getString("name");
 				String surname = result.getString("surname");
 				user = new User(id, username, email, password, name, surname);
-			}else {
-				user = null;
 			}
 
 		} catch (SQLException e) {
