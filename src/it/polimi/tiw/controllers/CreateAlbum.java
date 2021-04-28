@@ -7,8 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
-
+import java.util.Date;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.UnavailableException;
@@ -28,7 +29,6 @@ import it.polimi.tiw.dao.AlbumDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
 import it.polimi.tiw.utils.ErrorType;
 import it.polimi.tiw.utils.PathUtils;
-import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
 
@@ -67,9 +67,7 @@ public class CreateAlbum extends HttpServlet {
 
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//session control
-		if(!SessionControlHandler.isSessionValidate(request, response))	return;
-		
+	
 		HttpSession session = request.getSession();
 		User user = (User) session.getAttribute("user");
 		
@@ -129,14 +127,19 @@ public class CreateAlbum extends HttpServlet {
 		String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
 		int indexImage = imageFileName.lastIndexOf('.');
 		String imageExt = imageFileName.substring(indexImage);
+		int imageHash = imageFileName.hashCode();
 		
-		Album album = new Album(title, interpreter, year, genre, user.getId(), null);
+        String formattedDate = new SimpleDateFormat("MMddyyyyhmmssa").format(new Date());
+		
+		String imageId = "" + user.getId() + "-" + imageHash + "-" + formattedDate + imageExt;
+		
+		Album album = new Album(title, interpreter, year, genre, user.getId(), imageId);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		
 		int created;
 		try {
 			//return 0 if already present in our database (title, interpreter, year, genre, idCreator) is a unique constraint
-			created = albumDAO.createAlbum(album, imageExt);
+			created = albumDAO.createAlbum(album);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
 			return;
@@ -145,19 +148,7 @@ public class CreateAlbum extends HttpServlet {
 			redirectToHomePage(session, response, ErrorType.ALBUM_ALREADY_PRESENT.getMessage());
 			return;
 		}
-		
-		//setting album id
-		try {
-			album.setId(albumDAO.findAlbumId(album));
-		} catch (SQLException e) {
-			forwardToErrorPage(request, response, e.getMessage());
-			return;
-		}
-		
-		
-		
-		//control type and then make some controls
-		String imageId = "" + album.getId() + "-" + album.getIdCreator() + imageExt;
+				
 		
 		//imagePath refers to the path initialized in the init part
 		String imageOutputPath = imagePath + imageId;

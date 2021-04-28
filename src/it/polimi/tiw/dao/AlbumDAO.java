@@ -18,7 +18,7 @@ public class AlbumDAO {
 	
 	
 	//return 0 if album was already present (IGNORE statement)
-	public int createAlbum(Album album, String imageExt) throws SQLException {
+	public int createAlbum(Album album) throws SQLException {
 		int code = 0;
 		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Album` (`id`, `title`, `interpreter`, `year`, `genre`, `idCreator`, `imageUrl`)\n"
 				+ "VALUES (\n"
@@ -28,7 +28,7 @@ public class AlbumDAO {
 				+ "?,\n"
 				+ "?,\n"
 				+ "?,\n"
-				+ "(SELECT CONCAT( (SELECT (coalesce(MAX(a2.id), 0) + 1) FROM MusicPlaylistdb.Album as a2) , ?))\n"
+				+ "?\n"
 				+ ")";
 		
 		PreparedStatement pstatement = null;
@@ -39,7 +39,7 @@ public class AlbumDAO {
 			pstatement.setShort(3,  album.getYear());
 			pstatement.setString(4, album.getGenre().getDisplayName());
 			pstatement.setInt(5, album.getIdCreator());
-			pstatement.setString(6, "-" + album.getIdCreator() + imageExt);
+			pstatement.setString(6, album.getImageUrl());
 			
 			code = pstatement.executeUpdate();
 			

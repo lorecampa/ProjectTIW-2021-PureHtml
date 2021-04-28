@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.UnavailableException;
@@ -27,7 +29,6 @@ import it.polimi.tiw.dao.SongDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
 import it.polimi.tiw.utils.ErrorType;
 import it.polimi.tiw.utils.PathUtils;
-import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
 
@@ -65,8 +66,6 @@ public class CreateSong extends HttpServlet {
 
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//session control
-		if(!SessionControlHandler.isSessionValidate(request, response))	return;
 		
 		HttpSession session = request.getSession();
 		User user = (User) session.getAttribute("user");
@@ -130,14 +129,20 @@ public class CreateSong extends HttpServlet {
 		int indexAudio = audioFileName.lastIndexOf('.');
 		String audioExt = "";
 		audioExt = audioFileName.substring(indexAudio);
-	
+		int audioHash = audioFileName.hashCode();
+		String formattedDate = new SimpleDateFormat("MMddyyyyhmmssa").format(new Date());
+		
+		String audioId = "" + user.getId() + "-" + album.getId() + "-" + audioHash + "-" + formattedDate + audioExt;
+		
+		//String audioId = "" + song.getId() + "-" + song.getIdAlbum() + audioExt;
+		
 		//create song (audioUrl is set by the database)
-		Song song = new Song(title, null, album.getId());
+		Song song = new Song(title, audioId, album.getId());
 		SongDAO songDAO = new SongDAO(connection);
 		int created;
 		try {
 			//return 0 if the song was already present (title, albumId) are a unique constraint
-			created = songDAO.createSong(song, audioExt);
+			created = songDAO.createSong(song);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
 			return;
@@ -149,18 +154,7 @@ public class CreateSong extends HttpServlet {
 			return;
 		}
 		
-		
-		//find song id that is just created
-		try {
-			song.setId(songDAO.findSongId(song));
-		} catch (SQLException e) {
-			forwardToErrorPage(request, response, e.getMessage());
-			return;
-		}
-		
 			
-		
-		String audioId = "" + song.getId() + "-" + song.getIdAlbum() + audioExt;
 		
 		//audioPath refers to the path initialized in the init part
 		String audioOutputPath = audioPath + audioId;

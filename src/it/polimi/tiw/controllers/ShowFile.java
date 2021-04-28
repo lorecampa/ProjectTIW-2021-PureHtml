@@ -14,7 +14,6 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 import it.polimi.tiw.utils.ErrorType;
 import it.polimi.tiw.utils.PathUtils;
-import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
 
@@ -40,8 +39,6 @@ public class ShowFile extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//session control
-		if(!SessionControlHandler.isSessionValidate(request, response))	return;
 		
 		String pathInfo = request.getPathInfo();
 		

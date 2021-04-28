@@ -17,7 +17,6 @@
     <param-name>dbDriver</param-name>
     <param-value>com.mysql.cj.jdbc.Driver</param-value>
   </context-param>
-  
   <context-param>
     <param-name>imagePath</param-name>
     <param-value>/Users/lorecampa/Documents/eclipseStoring/MusicPlaylist/images/</param-value>
@@ -25,12 +24,35 @@
   <context-param>
     <param-name>audioPath</param-name>
     <param-value>/Users/lorecampa/Documents/eclipseStoring/MusicPlaylist/audio/</param-value>
-    
   </context-param>
   
-  <session-config>
-  	<session-timeout>-1</session-timeout>
-  </session-config>
+  <filter>
+  	<filter-name>AlreadyLoggedChecker</filter-name>
+  	<filter-class>it.polimi.tiw.filters.AlreadyLoggedChecker</filter-class>
+  </filter>
+  <filter>
+  	<filter-name>NotLoggedChecker</filter-name>
+  	<filter-class>it.polimi.tiw.filters.NotLoggedChecker</filter-class>
+  </filter>
+  
+  <filter-mapping>
+  	<filter-name>AlreadyLoggedChecker</filter-name>
+  	<url-pattern>/SubmitLogin</url-pattern>
+  	<url-pattern>/SubmitRegistration</url-pattern>
+  </filter-mapping>
+  
+  <filter-mapping>
+  	<filter-name>NotLoggedChecker</filter-name>
+  	<url-pattern>/GetHomePage</url-pattern>
+  	<url-pattern>/CreatePlaylist</url-pattern>
+  	<url-pattern>/CreateAlbum</url-pattern>
+  	<url-pattern>/CreateSong</url-pattern>
+  	<url-pattern>/GetPlaylist</url-pattern>
+  	<url-pattern>/GetPlayer</url-pattern>
+  	<url-pattern>/AddSongToPlaylist</url-pattern>
+  </filter-mapping>
+  
+  
   
   <welcome-file-list>
     <welcome-file>SubmitLogin</welcome-file>

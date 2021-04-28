@@ -18,19 +18,19 @@ public class SongDAO {
 	
 	
 	//return 0 if song is already present (title, idAlbum) unique constraint
-	public int createSong(Song song, String imageExt) throws SQLException {
+	public int createSong(Song song) throws SQLException {
 		int code = 0;
 		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Song` (`id`, `title`, `songUrl`, `idAlbum`)\n"
 				+ "VALUES (\n"
 				+ "(SELECT (coalesce(MAX(s2.id), 0) + 1) FROM MusicPlaylistdb.Song as s2),\n"
 				+ "?,\n"
-				+ "(SELECT CONCAT ( (SELECT (coalesce(MAX(s2.id), 0) + 1) FROM MusicPlaylistdb.Song as s2), ?)),\n"
+				+ "?,\n"
 				+ "?)";
 		PreparedStatement pstatement = null;
 		try {
 			pstatement = con.prepareStatement(query);
 			pstatement.setString(1, song.getTitle());
-			pstatement.setString(2, "-" + song.getIdAlbum() + imageExt);
+			pstatement.setString(2, song.getSongUrl());
 			pstatement.setInt(3, song.getIdAlbum());
 			code = pstatement.executeUpdate();
 

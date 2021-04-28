@@ -38,15 +38,7 @@ public class SubmitLogin extends HttpServlet {
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-		HttpSession session = request.getSession(false);
-		if (session == null || session.getAttribute("user") == null) {
-			//session's over
-			forward(request, response, PathUtils.LOGIN_PAGE);
-		}else {
-			//otherwise go to home page
-			response.sendRedirect(getServletContext().getContextPath() + PathUtils.HOME_SERVLET);
-		}
+		forward(request, response, PathUtils.LOGIN_PAGE);
 	}
 
 

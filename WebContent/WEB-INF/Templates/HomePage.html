@@ -8,9 +8,9 @@
 <body>
 	<h1 th:text="'Welcome '+ ${session.user.username}">Welcome User</h1>
 	
-	<p th:if = "${playlists.isEmpty()}" th:text ="'There are not playlists yet'">Label no playlists </p>
+	<p th:if = "${#lists.isEmpty(playlists)}" th:text ="'There are not playlists yet'">Label no playlists </p>
 	
-	<table th:if = "${not playlists.isEmpty()}" border="1">
+	<table th:if = "${not #lists.isEmpty(playlists)}" border="1">
 		<thead>
 			<tr>
 				<th>Your Playlists</th>

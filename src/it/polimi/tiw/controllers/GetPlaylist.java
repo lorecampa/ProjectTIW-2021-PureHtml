@@ -46,8 +46,6 @@ public class GetPlaylist extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//session control
-		if(!SessionControlHandler.isSessionValidate(request, response))	return;
 		
 		HttpSession session = request.getSession();
 		User user = (User) session.getAttribute("user");
@@ -170,14 +168,6 @@ public class GetPlaylist extends HttpServlet {
 			isPrevActive = true;
 		}
 		
-		//debug
-		System.out.println("From Index: "+ fromIndex);
-		System.out.println("To Index: "+ toIndex);
-		System.out.println("prevActive: "+ isPrevActive);
-		System.out.println("nextActive: "+ isNextActive);
-		System.out.println("songsSize: "+ songs.size());
-
-
 		
 		request.setAttribute("playlist", playlist);
 		request.setAttribute("userSongsSelection", userSongsSelection);

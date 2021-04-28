@@ -17,7 +17,6 @@ import it.polimi.tiw.dao.PlaylistDAO;
 import it.polimi.tiw.utils.ConnectionHandler;
 import it.polimi.tiw.utils.ErrorType;
 import it.polimi.tiw.utils.PathUtils;
-import it.polimi.tiw.utils.SessionControlHandler;
 import it.polimi.tiw.utils.TymeleafHandler;
 
 
@@ -46,9 +45,7 @@ public class CreatePlaylist extends HttpServlet {
 
 	
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		//session control
-		if(!SessionControlHandler.isSessionValidate(request, response))	return;
-		
+	
 		HttpSession session = request.getSession();
 		User user = (User) session.getAttribute("user");
 		

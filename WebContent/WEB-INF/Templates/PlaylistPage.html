@@ -8,8 +8,8 @@
 <body>
 	<h1 th:text="'Playlist: '+ ${playlist.title}">Playlist:  NamePlaylist</h1>
 	
-	<p th:if = "${songs.isEmpty()}" th:text ="'There are still not songs'">Label no songs </p>
-	<table th:if =  "${not songs.isEmpty()}" border="1">
+	<p th:if = "${#lists.isEmpty(songs)}" th:text ="'There are still not songs'">Label no songs </p>
+	<table th:if =  "${not #lists.isEmpty(songs)}" border="1">
 		
 		<tbody>
 			
