@@ -2,13 +2,20 @@ title CreatePlaylist(POST)
 
 participant CreatePlaylist
 participant PlaylistDAO
+participant Session
 participant GetHomePage
 
-CreatePlaylist ->PlaylistDAO: createPlaylist(playlistName, userId)
+note left of CreatePlaylist: Form:\ntitle
 
-CreatePlaylist <--PlaylistDAO: created
+CreatePlaylist ->PlaylistDAO: createPlaylist(playlistName, user.getId())
 
-CreatePlaylist ->GetHomePage: if (created = 0) redirect("Playlist was already present")
+PlaylistDAO -->CreatePlaylist: created
 
-CreatePlaylist ->GetHomePage: if( created != 0) redirect
+alt created == 0
+CreatePlaylist -> Session: setAttribute("playlistWarning", "Playlist already present")
+else created != 0
+CreatePlaylist -> Session: setAttribute("playlistWarning", "Playlist created succesfully")
+end
+
+CreatePlaylist ->GetHomePage: redirect
 

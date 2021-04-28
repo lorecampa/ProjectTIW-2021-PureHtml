@@ -1,0 +1,22 @@
+title CreateAlbum(POST)
+
+participant CreateAlbum
+participant AlbumDAO
+participant Session
+participant GetHomePage
+
+
+note left of CreateAlbum: Form:\ntitle,\ninterpreter,\nyear,\ngenre,\nimage
+
+note left of CreateAlbum: before creating album\nin database we\ncompute the imageId\nbased on this format\n[ userId + imageFileNameHash +\ntimestamp + imageExtension ]
+
+CreateAlbum ->AlbumDAO: createAlbum(album)
+AlbumDAO -->CreateAlbum: created
+
+alt created == 0
+CreateAlbum ->Session: setAttribute("albumWarning", "Album already present")
+CreateAlbum ->GetHomePage: redirect
+else created != 0
+CreateAlbum ->Session: setAttribute("albumWarning", "Album created succesfully")
+CreateAlbum ->GetHomePage: redirect
+end

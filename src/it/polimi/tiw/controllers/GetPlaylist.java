@@ -88,6 +88,7 @@ public class GetPlaylist extends HttpServlet {
 		}
 		
 		
+		
 		MatchDAO matchDAO = new MatchDAO(connection);
 		//list of song id present on the playlist
 		ArrayList<Integer> playlistSongIds = new ArrayList<>();
@@ -128,11 +129,11 @@ public class GetPlaylist extends HttpServlet {
 		//lists of song that the user can select and add to the playlist
 		ArrayList<Song> userSongsSelection = new ArrayList<>();
 		try {
-			ArrayList<Song> allUserSong = new ArrayList<>();
+			ArrayList<Song> allUserSongs = new ArrayList<>();
 			//return empty list if there are no songs
-			allUserSong = songDAO.findAllSongByUserId(idUser);
+			allUserSongs = songDAO.findAllSongByUserId(idUser);
 			
-			for (Song songTemp: allUserSong) {
+			for (Song songTemp: allUserSongs) {
 				if(!playlistSongIds.contains(songTemp.getId())) {
 					userSongsSelection.add(songTemp);
 				}

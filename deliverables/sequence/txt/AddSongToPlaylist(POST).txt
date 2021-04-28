@@ -1,12 +1,37 @@
 title AddSongToPlaylist(POST)
-
+autonumber 
 participant AddSongToPlaylist
+participant SongDAO
+participant AlbumDAO
+participant PlaylistDAO
 participant matchDAO
+participant Session
+participant ErrorPage.html
 participant GetPlaylist
 
-AddSongToPlaylist ->matchDAO: createMatch(idSong, idPlaylist)
 
-AddSongToPlaylist <-- matchDAO: created
+note left of AddSongToPlaylist: parame:\nidSong,\nidPlaylist,\ncurrentSlide
 
+AddSongToPlaylist ->SongDAO: findSongById(idSong)
+SongDAO -->AddSongToPlaylist: song
 
-AddSongToPlaylist ->GetPlaylist: if(created != 0) redirect ?(idPlaylist, currentSlide)
+AddSongToPlaylist ->AlbumDAO: findAlumById(song.getIdAlbum())
+AlbumDAO -->AddSongToPlaylist: album
+
+AddSongToPlaylist ->PlaylistDAO: findPlaylistById(idPlaylist)
+PlaylistDAO -->AddSongToPlaylist: playlist
+
+alt playlist.getIdCreator() != user.getId() || album.getIdCreator() != user.getId()
+
+AddSongToPlaylist ->AddSongToPlaylist: request.setAttribute("error", errorMessage)
+AddSongToPlaylist ->ErrorPage.html: forward
+
+else otherwise
+note left of AddSongToPlaylist: Match match = (\nidSong,\nidPlaylist)
+AddSongToPlaylist ->matchDAO: createMatch(match)
+matchDAO -->AddSongToPlaylist: created
+alt created == 0
+AddSongToPlaylist ->Session: session.setAttribute("addSongToPlaylistWarning", "Song already present")
+end
+AddSongToPlaylist ->GetPlaylist: redirect(?idPlaylist, currentSlide)
+end

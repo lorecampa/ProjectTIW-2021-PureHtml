@@ -1,9 +1,12 @@
+
 title Logout (POST)
 participant Logout
 participant session
 participant SubmitLogin
 
-
+Logout ->Logout: session = request.getSession(false)
+alt session != null
 Logout ->session: invalidate()
+end 
 
-Logout -> SubmitLogin: redirect("Logout succesfully")
+Logout -> SubmitLogin: redirect

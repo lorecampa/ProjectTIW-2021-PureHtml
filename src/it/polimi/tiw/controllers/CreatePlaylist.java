@@ -67,7 +67,9 @@ public class CreatePlaylist extends HttpServlet {
 		}
 		
 		if (created == 0) {
-			session.setAttribute("playlistWarning", ErrorType.PLAYLIST_ALREADY_PRESENT);
+			session.setAttribute("playlistWarning", "Playlist " + playlistName + " is already present in your list");
+		}else {
+			session.setAttribute("playlistWarning", "Playlist " + playlistName + " created succesfully");
 		}
 		
 		

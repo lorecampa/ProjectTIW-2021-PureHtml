@@ -1,0 +1,33 @@
+title GetPlayer(GET)
+autonumber 
+participant GetPlayer
+participant playlistDAO
+participant songDAO
+participant albumDAO
+participant ErrorPage.html
+participant PlayerPage.html
+
+note left of GetPlayer: param:\nidSong,\nidPlaylist
+
+
+GetPlayer ->playlistDAO: findPlaylistById(idPlaylist)
+playlistDAO ->GetPlayer: playlist
+
+GetPlayer ->songDAO: findSongById(idSong)
+songDAO -->GetPlayer: song
+
+GetPlayer ->albumDAO: findAlumById(song.getIdAlbum())
+albumDAO -->GetPlayer: album
+
+alt  playlist.getIdCreator() != user.getId()  ||   album.getIdCreator()!=user.getId() 
+
+GetPlayer ->GetPlayer: request.setAttribute("error", errorMessage)
+GetPlayer ->ErrorPage.html: forward
+else 
+GetPlayer ->GetPlayer: request.setAttribute("song", song)
+GetPlayer ->GetPlayer: request.setAttribute("album", album)
+GetPlayer ->GetPlayer: request.setAttribute("playlist", playlist)
+
+GetPlayer ->PlayerPage.html: forward
+end 
+

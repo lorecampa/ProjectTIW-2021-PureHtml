@@ -1,0 +1,92 @@
+title GetPlaylist(GET)
+
+participant GetPlaylist
+participant PlaylistDAO
+participant MatchDAO
+participant SongDAO
+participant AlbumDAO
+participant ErrorPage.html
+participant session
+participant PlaylistPage.html
+
+
+
+GetPlaylist ->session: getAttribute("addSongToPlaylistWarning")
+session -->GetPlaylist: addSongWarning
+
+alt addSongWarning != null
+GetPlaylist ->session: removeAttribute("addSongToPlaylistWarning")
+GetPlaylist ->GetPlaylist: request.setAttribute("addSongWarning", addSongWarning)
+end 
+
+
+GetPlaylist ->GetPlaylist: request.getParameter("idPlaylist")
+
+GetPlaylist ->GetPlaylist: request.getParameter("currentSlide")
+
+GetPlaylist ->PlaylistDAO: findPlaylistById(idPlaylist)
+PlaylistDAO -->GetPlaylist: playlist
+
+alt playlist == null || playlist.getIdCreator() != user.getId()
+GetPlaylist ->ErrorPage.html: forward(errorMessage)
+end
+
+
+GetPlaylist ->MatchDAO: findAllSongIdOfPlaylist(idPlaylist, idUser)
+MatchDAO -->GetPlaylist: playlistSongIds
+
+loop for all id in playlistSongIds
+GetPlaylist ->SongDAO: findSongById(id);
+SongDAO -->GetPlaylist: song
+alt song != null
+GetPlaylist ->AlbumDAO: findAlumById(song.getIdAlbum())
+AlbumDAO -->GetPlaylist: album
+alt album != null
+GetPlaylist ->GetPlaylist: songs.add(song)
+GetPlaylist ->GetPlaylist: albums.add(album)
+end
+end
+end
+
+
+GetPlaylist ->SongDAO: findAllSongByUserId(idUser)
+SongDAO -->GetPlaylist: allUserSongs
+loop for all Song temp in allUserSongs
+alt playlistSongIds not contains temp.getId()
+GetPlaylist ->GetPlaylist: userSongsSelection.add(temp)
+end
+end
+note left of GetPlaylist: now we get only the\nsongs based on\nthe current slide\nand we set all the\nrequest attribute\nbefore forwarding
+
+
+GetPlaylist ->PlaylistPage.html: forward
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

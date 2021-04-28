@@ -1,0 +1,16 @@
+title forward
+
+participant Servlet
+participant servletContext
+participant WebContext
+participant ctx
+participant templateEngine
+
+
+Servlet ->servletContext: getServletContext()
+servletContext -->Servlet: servletContext
+
+Servlet ->WebContext: new WebContext()
+WebContext -->Servlet: ctx
+
+Servlet ->templateEngine: process(ctx)

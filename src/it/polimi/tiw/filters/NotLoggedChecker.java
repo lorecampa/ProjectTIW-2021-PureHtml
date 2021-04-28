@@ -27,7 +27,7 @@ public class NotLoggedChecker implements Filter {
 
 	
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		System.out.println("NotLoggedChecker filter executing ...\n");
+		//System.out.println("NotLoggedChecker filter executing ...\n");
 		
 		HttpServletRequest req = (HttpServletRequest) request;
 		HttpServletResponse res = (HttpServletResponse) response;

@@ -48,12 +48,12 @@ public class GetPlayer extends HttpServlet {
 		User user = (User) session.getAttribute("user");
 		
 		String idSongString = request.getParameter("idSong");
-		String idPlayerString = request.getParameter("idPlaylist");
+		String idPlaylistString = request.getParameter("idPlaylist");
 		int idSong;
 		int idPlaylist;
 		try {
 			idSong = Integer.parseInt(idSongString);
-			idPlaylist = Integer.parseInt(idPlayerString);
+			idPlaylist = Integer.parseInt(idPlaylistString);
 		}catch(NumberFormatException e) {
 			forwardToErrorPage(request, response, e.getMessage());
 			return;

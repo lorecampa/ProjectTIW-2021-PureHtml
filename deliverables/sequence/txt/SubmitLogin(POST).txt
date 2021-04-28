@@ -1,29 +1,36 @@
 title SubmitLogin (POST)
 
+
 participant SubmitLogin
 participant UserDAO
 participant Login.html
 participant session
 participant GetHomePage
+participant ErrorPage.html
+
 
 SubmitLogin->UserDAO: findIdOfUsername(username)
 
 SubmitLogin <-- UserDAO: idUser
 
-SubmitLogin -> Login.html: if(idUser = -1) incorrect user
-
+alt idUser == -1
+SubmitLogin -> Login.html: Incorrect username
+else idUser != -1
 SubmitLogin->UserDAO: isPasswordCorrect(idUser, password)
-
-SubmitLogin<--UserDAO: passwordState
-
-SubmitLogin-> Login.html: if(!passwordState) incorrect password
-
+SubmitLogin <-- UserDAO: result
+alt result == false
+SubmitLogin -> ErrorPage.html: forward(errorMessage)
+else result == true
 SubmitLogin->UserDAO: findUserById(idUser)
-SubmitLogin<--UserDAO: user
+SubmitLogin <-- UserDAO: user
 
 SubmitLogin->session: session.setAttribute("user", user)
-
 SubmitLogin->GetHomePage: redirect
+end 
+
+
+end
+
 
 
 

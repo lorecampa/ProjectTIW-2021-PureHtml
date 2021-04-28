@@ -3,19 +3,47 @@ title CreateSong(POST)
 participant CreateSong
 participant albumDAO
 participant songDAO
-participant  GetHomePage
+participant GetHomePage
+participant ErrorPage.html
+participant Session
 
-CreateSong ->albumDAO: findAlbumById(albumId)
 
+note left of CreateSong: Form:\ntitle,\nalbumId,\naudioFile
+
+CreateSong ->albumDAO: findAlumById(albumId)
 CreateSong <-- albumDAO: idAlbum
 
+
+alt  album == null || (album.getIdCreator() != user.getId()) 
+CreateSong ->CreateSong: request.setAttribute(errorMessage)
+CreateSong ->ErrorPage.html: forward
+end
+
+note left of CreateSong: before creating song\nin database we\ncompute the audioId\nbased on this format\n[ userId + albumId + audioFileNameHash +\ntimestamp + audioExtension ]
+
 CreateSong ->songDAO: createSong(song)
+songDAO -->CreateSong: created
 
-CreateSong <-- songDAO: created
+alt created == 0
+CreateSong ->Session: setAttribute("songWarning", "songAlreadyPresent")
+CreateSong ->GetHomePage: redirect
+else created != 0
+CreateSong ->Session: setAttribute("songWarning", "Song created succesfully")
+CreateSong ->GetHomePage: redirect
+end
 
-CreateSong ->songDAO: findSongId(song)
-CreateSong <-- songDAO: idSong
 
-CreateSong ->songDAO: updateSong(audioId)
 
-CreateSong -> GetHomePage: redirect
+
+
+
+
+
+
+
+
+
+
+
+
+

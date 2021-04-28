@@ -85,7 +85,7 @@ public class SubmitRegistration extends HttpServlet {
 			String msg = "Email: " + user.getEmail() + " is already registred";
 			request.setAttribute("registrationWarning", msg);
 			forward(request, response, PathUtils.REGISTER_PAGE);
-
+			return;
 		}
 		
 		//find and set user id just created
