@@ -1,5 +1,4 @@
-title SubmitRegistration(POST)
-
+autonumber
 participant SubmitRegistration
 participant userDAO
 participant RegistrationPage.html

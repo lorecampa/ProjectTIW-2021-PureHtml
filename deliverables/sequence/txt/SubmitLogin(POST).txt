@@ -1,6 +1,4 @@
-title SubmitLogin (POST)
-
-
+autonumber
 participant SubmitLogin
 participant UserDAO
 participant Login.html

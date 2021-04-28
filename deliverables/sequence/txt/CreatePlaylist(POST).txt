@@ -1,5 +1,4 @@
-title CreatePlaylist(POST)
-
+autonumber
 participant CreatePlaylist
 participant PlaylistDAO
 participant Session

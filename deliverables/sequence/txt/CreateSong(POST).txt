@@ -1,5 +1,4 @@
-title CreateSong(POST)
-
+autonumber
 participant CreateSong
 participant albumDAO
 participant songDAO

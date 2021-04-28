@@ -1,0 +1,44 @@
+autonumber 
+
+participant getHomePage
+participant playlistDAO
+participant albumDAO
+participant Session
+participant HomePage.html
+
+
+loop for : "playlistWarnings", "albumWarning" and "songWarning"
+note over getHomePage, Session: case with the "playlistWarning"
+getHomePage ->Session: getAttribute("playlistWarning")
+Session -->getHomePage: playlistWarning
+alt playlistWarning != null
+getHomePage ->Session: removeAttribute("playlistWarning");
+getHomePage ->getHomePage: request.setAttribute("createPlaylistWarning", playlistWarning)
+end 
+end 
+
+getHomePage ->playlistDAO: findAllPlaylistByUserId(user.getId())
+playlistDAO -->getHomePage: playlists
+
+getHomePage ->albumDAO: albumDAO.findAllUserAlbumsById(user.getId())
+albumDAO -->getHomePage: albums
+
+getHomePage ->getHomePage: request.setAttribute("playlists", playlists)
+
+getHomePage ->getHomePage: 		request.setAttribute("albums", albums)
+
+getHomePage ->HomePage.html: forward
+
+
+
+
+
+
+
+
+
+
+
+
+
+

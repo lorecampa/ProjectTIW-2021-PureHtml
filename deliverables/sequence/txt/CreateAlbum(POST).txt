@@ -1,5 +1,4 @@
-title CreateAlbum(POST)
-
+autonumber
 participant CreateAlbum
 participant AlbumDAO
 participant Session

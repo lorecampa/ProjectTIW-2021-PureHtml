@@ -1,5 +1,4 @@
-
-title Logout (POST)
+autonumber
 participant Logout
 participant session
 participant SubmitLogin

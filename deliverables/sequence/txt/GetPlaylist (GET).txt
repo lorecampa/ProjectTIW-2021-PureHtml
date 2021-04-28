@@ -1,5 +1,4 @@
-title GetPlaylist(GET)
-
+autonumber
 participant GetPlaylist
 participant PlaylistDAO
 participant MatchDAO
