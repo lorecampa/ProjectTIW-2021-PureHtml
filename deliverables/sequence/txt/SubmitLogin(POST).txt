@@ -4,20 +4,26 @@ participant UserDAO
 participant Login.html
 participant session
 participant GetHomePage
-participant ErrorPage.html
 
-
-SubmitLogin->UserDAO: findIdOfUsername(username)
+note left of SubmitLogin: Form:\nemail,\npassword
+SubmitLogin->UserDAO: findIdOfUserByEmail(email)
 
 SubmitLogin <-- UserDAO: idUser
 
 alt idUser == -1
-SubmitLogin -> Login.html: Incorrect username
+SubmitLogin->SubmitLogin: request.setAttribute("loginWarnings", "Incorrect username")
+SubmitLogin -> Login.html: forward
 else idUser != -1
 SubmitLogin->UserDAO: isPasswordCorrect(idUser, password)
 SubmitLogin <-- UserDAO: result
+
+
 alt result == false
-SubmitLogin -> ErrorPage.html: forward(errorMessage)
+SubmitLogin->SubmitLogin: request.setAttribute("loginWarnings", "Incorrect password")
+SubmitLogin -> Login.html: forward
+
+
+
 else result == true
 SubmitLogin->UserDAO: findUserById(idUser)
 SubmitLogin <-- UserDAO: user

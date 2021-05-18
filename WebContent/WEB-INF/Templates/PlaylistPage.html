@@ -3,58 +3,67 @@
 <head>
 <title>Playlists</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" th:href="@{/css/global.css}" href="../../css/global.css"/>
+<link rel="stylesheet" type="text/css" th:href="@{/css/playlistpage.css}" href="../../css/playlistpage.css"/>
 
 </head>
 <body>
-	<h1 th:text="'Playlist: '+ ${playlist.title}">Playlist:  NamePlaylist</h1>
-	
-	<p th:if = "${#lists.isEmpty(songs)}" th:text ="'There are still not songs'">Label no songs </p>
-	<table th:if =  "${not #lists.isEmpty(songs)}" border="1">
-		
-		<tbody>
-			
-			<tr>
-				<td  th:each= "song: ${songs}">
-				<a th:href= "@{/GetPlayer(idSong = ${song.id}, idPlaylist = ${playlist.id})}"><span th:text = "${song.title}">Title1</span></a>
-				</td>
-			</tr>
 
-			<tr>
-			 	<td th:each= "album: ${albums}">
-			 	<img  th:src="'ShowFile/image_' + ${album.imageUrl}" th:alt="${album.imageUrl}" width="150" height="100">
-			 	</td>
-			</tr>
-			
-		</tbody>
-	</table>
+    <ul>
+        <li class ="greenBtn"   style="float: left;">  <a th:href="@{/GetHomePage}"> HomePage</a></li>
+        <li class ="greenBtn"   style="float: right;"> <a th:href="@{/Logout}">Logout</a></li>
+    </ul> 
+
+	<h1 th:text="'Playlist: '+ ${playlist.title}">NamePlaylist</h1>
+
+	<div class="formBox playlistSongsBox">
+
+		<p th:if = "${#lists.isEmpty(songs)}">There are still not songs </p>
+		<table th:if =  "${not #lists.isEmpty(songs)}" border="1">
+			<tbody>
+				<tr>
+					<td  th:each= "song: ${songs}">
+					<a th:href= "@{/GetPlayer(idSong = ${song.id}, idPlaylist = ${playlist.id})}"><span th:text = "${song.title}">Title0</span></a>
+					</td>
+				</tr>
+	
+				<tr>
+					 <td th:each= "album: ${albums}">
+					 <img  th:src="'ShowFile/image_' + ${album.imageUrl}" th:alt="${album.imageUrl}">
+					 </td>
+				</tr>	
+			</tbody>
+		</table>
+
+		<form th:if = "${isPrevActive}"  method= "POST" th:action="@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide = ${{currentSlide - 1}})}">
+			<input id = "prevBtn" class= "greenBtn" value = "Prev" type = "submit">	
+		</form>
+		
+		<form  th:if = "${isNextActive}"  method= "POST" th:action="@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide = ${{currentSlide+1}})}">
+			<input id="nextBtn" class= "greenBtn" value = "Next" type = "submit">	
+		</form>
+
+	</div>
 	
 	
-	<form th:if = "${isPrevActive}" method= "POST" th:action="@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide = ${{currentSlide - 1}})}">
-		<input value = "Prev" type = "submit">	
-	</form>
-	
-	<form th:if = "${isNextActive}" method= "POST" th:action="@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide = ${{currentSlide+1}})}">
-		<input value = "Next" type = "submit">	
-	</form>
 	
 	
 	
-	<h1>Add Song to Playlist</h1>
 	
-	<form method= "POST" th:action="@{/AddSongToPlaylist(idPlaylist=${playlist.id}, currentSlide = ${currentSlide})}">
-		<label>Songs created</label>
-		<p style="color:red" th:if = "${addSongWarning}" th:text=" ${addSongWarning}">error</p>
-		<select name= "songs" th:remove = "all-but-first" required>
-			<option th:each= "song: ${userSongsSelection}" th:value= "${song.id}" th:text ="${song.title}" > Title Song</option>
-			<option>Like a Rolling Stone</option>
-			<option>Imagine</option>
-		</select><br>
-		<input value = "add to playlist" type = "submit">
-	</form>
-	
-	<br>
-	<br>
-	<a th:href= "@{/GetHomePage}">go back to home page</a>
+	<div th:if = "${not #lists.isEmpty(userSongsSelection)}" class="formBox addSongToPlaylistBox">
+        <h2>Add Song to Playlist</h2>
+        <form method= "POST" th:action="@{/AddSongToPlaylist(idPlaylist=${playlist.id}, currentSlide = ${currentSlide})}">
+            <p class = "errorMessage" th:if = "${addSongWarning}" th:text=" ${addSongWarning}">error</p>
+			<p>Songs created</p>
+			<select class = "custom-select" name= "songs" th:remove = "all-but-first" required>
+				<option th:each= "song: ${userSongsSelection}" th:value= "${song.id}" th:text ="${song.title}" > Title Song</option>
+				<option>Like a Rolling Stone</option>
+				<option>Imagine</option>
+			</select>
+			<input class = "greenBtn" value = "add to playlist" type = "submit">
+        </form>
+    </div>
+
 
 	
 

@@ -2,9 +2,9 @@ autonumber
 participant CreateSong
 participant albumDAO
 participant songDAO
-participant GetHomePage
-participant ErrorPage.html
 participant Session
+participant ErrorPage.html
+participant GetHomePage
 
 
 note left of CreateSong: Form:\ntitle,\nalbumId,\naudioFile
@@ -25,11 +25,11 @@ songDAO -->CreateSong: created
 
 alt created == 0
 CreateSong ->Session: setAttribute("songWarning", "songAlreadyPresent")
-CreateSong ->GetHomePage: redirect
 else created != 0
 CreateSong ->Session: setAttribute("songWarning", "Song created succesfully")
-CreateSong ->GetHomePage: redirect
 end
+
+CreateSong ->GetHomePage: redirect
 
 
 

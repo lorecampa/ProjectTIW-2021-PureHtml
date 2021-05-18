@@ -1,0 +1,60 @@
+.formBox.playlistSongsBox{
+    margin: auto;
+    margin-bottom: 50px;
+    width: 100%;
+    text-align: center;
+}
+
+.formBox.addSongToPlaylistBox{
+    margin:auto;
+    text-align: center;
+}
+
+table.formBox.playlistSongsBox{
+    margin: auto;
+}
+
+
+
+.image-div{
+    display: inline-flex;
+    float: left;
+}
+
+table{
+    margin: auto;
+    border: 0;
+}
+tbody{
+    display: inline-block;
+    border: 0;
+}
+
+tbody > tr{
+    display:flex;
+    flex-wrap:wrap;
+}
+
+tr > td{
+    width: 250px;
+    margin: auto;
+}
+
+td > a{
+    text-decoration: none;
+    font-size: 13px;
+    font-family: monospace;
+}
+td > img{
+    width: 100%;
+    
+}
+
+td.imagetd{
+    height: 250px;
+
+}
+
+form > input{
+    margin: auto;
+}

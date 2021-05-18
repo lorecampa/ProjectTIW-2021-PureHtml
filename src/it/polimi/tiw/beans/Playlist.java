@@ -1,12 +1,13 @@
 package it.polimi.tiw.beans;
-
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Playlist {
 	private int id;
 	private String title;
 	private int idCreator;
-	private Timestamp timestamp;
+	private String date;
 
 	public Playlist() {
 		super();
@@ -33,12 +34,13 @@ public class Playlist {
 	}
 	
 	
-	public Timestamp getTimestamp() {
-		return timestamp;
+	public String getDate() {
+		return date;
 	}
 
-	public void setTimestamp(Timestamp timestamp) {
-		this.timestamp = timestamp;
+	public void setDate(Timestamp timestamp) {
+		String formattedDate = new SimpleDateFormat("dd-MM-yyyy").format(timestamp);
+		this.date = formattedDate;
 	}
 
 	

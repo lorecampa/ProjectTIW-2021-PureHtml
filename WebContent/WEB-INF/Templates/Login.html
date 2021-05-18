@@ -3,20 +3,29 @@
 <head>
 <title>Login</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" th:href="@{/css/global.css}" href="../../css/global.css"/>
+<link rel="stylesheet" type="text/css" th:href="@{/css/login.css}" href="../../css/login.css"/>
+
 
 </head>
 <body>
+
+
 	<h1>Welcome to Music Playlist application</h1>
 	
-	<p style="color:red" th:if = "${loginWarnings}" th:text=" ${loginWarnings}">logout succesfully</p>
+    
+	<div class = "formBox">
+		<p class= "errorMessage" th:if = "${loginWarnings}" th:text=" ${loginWarnings}">logout succesfully</p>
 	
-	<form method= "post" th:action="@{/SubmitLogin}">
-		<label>Email <input name = "email" type="text" required></label><br>
-		<label>Password <input name = "password" type = "password" required></label><br>
-		<input name = "login" type = "submit">
-	</form>
+		<form id = "form" method= "post" th:action="@{/SubmitLogin}">
+			<label>Email</label><input name = "email" type="text" required>
+			<label>Password</label><input name = "password" type = "password" required>
+			<label> </label> <input class = "greenBtn" name = "login" type = "submit" value="login">
+		</form>
+		
+		<a th:href="@{/SubmitRegistration}">Are you still not registered? Do it now!</a>
+	</div>
 	
-	<br> <a th:href="@{/SubmitRegistration}">Are you still not registered? Do it now</a>
 
 	
 </body>

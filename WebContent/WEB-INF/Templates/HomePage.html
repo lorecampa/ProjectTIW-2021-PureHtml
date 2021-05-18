@@ -3,109 +3,125 @@
 <head>
 <title>HomePage</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-
+<link rel="stylesheet" type="text/css" th:href="@{/css/global.css}" href="../../css/global.css"/>
+<link rel="stylesheet" type="text/css" th:href="@{/css/homepage.css}" href="../../css/homepage.css"/>
 </head>
 <body>
-	<h1 th:text="'Welcome '+ ${session.user.username}">Welcome User</h1>
-	
-	<p th:if = "${#lists.isEmpty(playlists)}" th:text ="'There are not playlists yet'">Label no playlists </p>
-	
-	<table th:if = "${not #lists.isEmpty(playlists)}" border="1">
-		<thead>
-			<tr>
-				<th>Your Playlists</th>
-			</tr>
-			
-		</thead>
-		
-		<tbody th:remove= "all-but-first">
-			<tr th:each= "playlist : ${playlists}">
-				<td> 
-					<a th:href= "@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide=${0})}">
-					<span th:text = "${playlist.title}">Title</span>
-					</a>
-				</td>
-				
-			</tr>
-			<tr>
-				<td>Esami Avici</td>
-				<td>23/09/19</td>
-			</tr>
-			<tr>
-				<td>Sanremo 2021</td>
-				<td>2/12/19</td>		
-			<tr>
-				<td>Rock</td>
-				<td>12/09/19</td>
-			</tr>
-			<tr>
-				<td>Lofi</td>
-				<td>23/01/15</td>
-			</tr>
-		</tbody>
-	</table>
-	
-	
-	<h1>Create Playlist</h1>
-		
-	<form method= "POST" th:action="@{/CreatePlaylist}">
-		<p style="color:red" th:if = "${createPlaylistWarning}" th:text=" ${createPlaylistWarning}">error</p>
-		<label>Title </label><input name = "name" type="text" required><br>
-		<input value = "create" type = "submit">
-	</form>
-	
-	<br>
-	<h1>Create Album</h1>
-	<form method= "POST" th:action="@{/CreateAlbum}" enctype="multipart/form-data">
-		<p style="color:red" th:if = "${createAlbumWarning}" th:text=" ${createAlbumWarning}">error</p>
-		<label>Title</label> <input name = "title" id="title" type="text" required><br>
-		<label>Interpreter</label> <input name = "interpreter" type="text" required><br>
-		<label>Year</label> <input name = "year" type="number" min=0 required><br>
-		<label>Genre</label>
-		<select name= "genre" required>
-			<option value= "Rock">Rock</option>
-			<option value= "Pop">Pop</option>
-			<option value= "Electronic">Electronic</option>
-			<option value= "Soul">Soul</option>
-			<option value= "Funk">Funk</option>
-			<option value= "Country">Country</option>
-			<option value= "Latin">Latin</option>
-			<option value= "Reggae">Raggae</option>
-			<option value= "Hip Hop">Hip Hop</option>
-			<option value= "Punk">Punk</option>
-			<option value= "Polka">Polka</option>
-		</select><br>
-		<label>Picture </label><input name = "picture" type="file" required><br>
-		<input value = "create" type = "submit">		
-	</form>
-	
-	
-	<h1>Create Song</h1>
-	<form method= "POST" th:action="@{/CreateSong}" enctype="multipart/form-data">
-		<p style="color:red" th:if = "${createSongWarning}" th:text=" ${createSongWarning}">error</p>
-		<label>Title</label> <input name = "title" id="title" type="text" required><br>
-		<label>Track file </label><input name = "audio" type="file"required><br>
-		
-		<label th:if = "${userAlbums.isEmpty()}">No albums created yet</label>
-		<div th:if = "${not userAlbums.isEmpty()}">
-			<label>Albums </label>
-			<select th:if = "${not userAlbums.isEmpty()}" name= "albums" th:remove = "all-but-first" required>
-				<option th:each= "album: ${userAlbums}" th:value= "${album.id}" th:text ="${album.title}" > Album Title</option>
-				<option>Like a Rolling Stone</option>
-				<option>Imagine</option>
-			</select>
-		</div>
-		<br>
-		<input value = "create" type = "submit">		
-	</form>
-	
-	
-	
-	<br><br><br>
-	<form method= "POST" th:action="@{/Logout}">
-		<input value = "LogOut" type = "submit">	
-	</form>
-	
 
+    <ul>
+        <li><h2 th:text="'Welcome '+ ${session.user.username}">UserName</h2></li>
+        <li class ="greenBtn"   style="float: right;"><a th:href="@{/Logout}">Logout</a></li>
+    </ul> 
+
+
+
+    <div class = "creationContainer">
+
+        <div class="formBox playlistBox">
+
+            <p class = "errorMessage" th:if = "${#lists.isEmpty(playlists)}"> There are not playlists yet</p>
+        
+            <table id = "userPlaylists" border="1" th:if = "${not #lists.isEmpty(playlists)}" >
+                
+                <tbody th:remove= "all-but-first">
+                    <tr th:each= "playlist : ${playlists}">
+
+                        <td> 
+                            <a th:href= "@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide=${0})}" th:text = "${playlist.title}">
+                            Title
+                            </a>
+                        </td>
+                        <td th:text = "${playlist.date}">Data Creation</td>
+                    </tr>
+
+                    <tr>
+                        <td><a>Esami Avici</a></td>
+                        <td>23/09/19</td>
+                    </tr>
+                    <tr>
+                        <a><td>Esami Avici</td></a>
+                        <td>2/12/19</td>		
+                    <tr>
+                        <a><td>Esami Avici</td></a>
+                        <td>12/09/19</td>
+                    </tr>
+                    <tr>
+                        <a><td>Esami Avici</td></a>
+                        <td>23/01/15</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Create Playlist</h2>
+
+            <form method= "POST" th:action="@{/CreatePlaylist}">
+                <p class = "errorMessage" th:if = "${createPlaylistWarning}" th:text=" ${createPlaylistWarning}">error</p>
+                <label>Title </label><input name = "name" type="text" required>
+                <input class = "greenBtn" value = "create" type = "submit">
+            </form>
+
+        </div>
+        
+        <div class= "formBox songBox">
+            <h2>Create Song</h2>
+            <form method= "POST" th:action="@{/CreateSong}" enctype="multipart/form-data">
+                <p class = "errorMessage" th:if = "${createSongWarning}" th:text=" ${createSongWarning}">error</p>
+                <label>Title</label> <input name = "title" id="title" type="text" required>
+    
+                
+                <label th:if = "${userAlbums.isEmpty()}">No albums created yet</label>
+                <div th:if = "${not userAlbums.isEmpty()}">
+                    <label>Albums </label>
+                    <select class="custom-select" th:if = "${not userAlbums.isEmpty()}" name= "albums" th:remove = "all-but-first" required>
+                        <option th:each= "album: ${userAlbums}" th:value= "${album.id}" th:text ="${album.title}" > Album Title</option>
+                        <option>Like a Rolling Stone</option>
+                        <option>Imagine</option>
+                    </select>
+                </div>
+                <label class="custom-upload">
+                    <input name = "audio" type="file"required>
+                    Audio Upload
+                </label>
+                
+                <input class = "greenBtn" value = "create" type = "submit">		
+            </form>
+        </div>
+        
+
+        
+        <div class="formBox albumBox">
+            <h2>Create Album</h2>
+            <form method= "POST" th:action="@{/CreateAlbum}" enctype="multipart/form-data">
+                <p class = "errorMessage" th:if = "${createAlbumWarning}" th:text=" ${createAlbumWarning}">error</p>
+                <label>Title</label> <input name = "title" id="title" type="text" required><br>
+                <label>Interpreter</label> <input name = "interpreter" type="text" required><br>
+                <label>Year</label> <input name = "year" type="number" min=0 required><br>
+                <label>Genre</label>
+                <select class="custom-select" style="width:200px;"name= "genre" required>
+                    <option value= "Rock">Rock</option>
+                    <option value= "Pop">Pop</option>
+                    <option value= "Electronic">Electronic</option>
+                    <option value= "Soul">Soul</option>
+                    <option value= "Funk">Funk</option>
+                    <option value= "Country">Country</option>
+                    <option value= "Latin">Latin</option>
+                    <option value= "Reggae">Raggae</option>
+                    <option value= "Hip Hop">Hip Hop</option>
+                    <option value= "Punk">Punk</option>
+                    <option value= "Polka">Polka</option>
+                </select><br>
+    
+                <label class="custom-upload">
+                    <input name = "picture" type="file" required>
+                    Image Upload
+                </label>
+                
+                <input class = "greenBtn" value = "create" type = "submit">		
+            </form>
+        
+        </div>
+
+    </div>
+	
 </body>
 </html>

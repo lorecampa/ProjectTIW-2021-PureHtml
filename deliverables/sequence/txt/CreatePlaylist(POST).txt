@@ -6,7 +6,7 @@ participant GetHomePage
 
 note left of CreatePlaylist: Form:\ntitle
 
-CreatePlaylist ->PlaylistDAO: createPlaylist(playlistName, user.getId())
+CreatePlaylist ->PlaylistDAO: createPlaylist(title, user.getId())
 
 PlaylistDAO -->CreatePlaylist: created
 

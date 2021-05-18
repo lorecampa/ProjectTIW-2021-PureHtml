@@ -3,19 +3,23 @@
 <head>
 <title>ErrorPage</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" th:href="@{/css/global.css}" href="../../css/global.css"/>
+<link rel="stylesheet" type="text/css" th:href="@{/css/errorpage.css}" href="../../css/errorpage.css"/>
 
 </head>
 <body>
-	<h1>ERROR PAGE</h1>
+    <div class = "formBox">
+        <h1>ERROR PAGE</h1>
 	
-	<p style="color:red" th:text=" ${error}">error</p>
-	
-	
-	
-	<br> <a th:if = "${session.user != null}" th:href="@{/GetHomePage}">Go back to your Home Page</a>
-	
-	<a th:if = "${session.user == null}" th:href="@{/LoginPage}">Go back to your Login Page</a>
+        <p class = "errorMessage" th:text=" ${error}">You are trying to access wrong information</p>
+        
 
+        <a th:if = "${session.user != null}" th:href="@{/GetHomePage}">Home Page</a>
+        <a th:if = "${session.user != null}" th:href="@{/Logout}">Logout</a>
+        
+        <a th:if = "${session.user == null}" th:href="@{/LoginPage}">Login Page</a>
+
+    </div>
 	
 </body>
 </html>

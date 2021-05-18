@@ -55,7 +55,7 @@ public class PlaylistDAO {
 				playlist.setId(result.getInt("id"));
 				playlist.setTitle(result.getString("title"));
 				playlist.setIdCreator(result.getInt("idCreator"));
-				playlist.setTimestamp(result.getTimestamp("dateCreation"));
+				playlist.setDate(result.getTimestamp("dateCreation"));
 				playlists.add(playlist);
 				
 			}
@@ -101,8 +101,7 @@ public class PlaylistDAO {
 				playlist.setId(playlistId);
 				playlist.setTitle(result.getString("title"));
 				playlist.setIdCreator(result.getInt("idCreator"));
-				playlist.setTimestamp(result.getTimestamp("dateCreation"));
-				
+				playlist.setDate(result.getTimestamp("dateCreation"));
 			}
 
 		} catch (SQLException e) {

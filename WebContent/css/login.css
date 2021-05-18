@@ -1,0 +1,10 @@
+.formBox{
+    margin: auto;
+}
+
+input{
+    margin: auto;
+    width: auto;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}

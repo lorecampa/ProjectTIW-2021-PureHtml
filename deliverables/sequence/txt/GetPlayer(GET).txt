@@ -6,11 +6,11 @@ participant albumDAO
 participant ErrorPage.html
 participant PlayerPage.html
 
-note left of GetPlayer: param:\nidSong,\nidPlaylist
+note left of GetPlayer: Query string:\nidSong,\nidPlaylist
 
 
 GetPlayer ->playlistDAO: findPlaylistById(idPlaylist)
-playlistDAO ->GetPlayer: playlist
+playlistDAO -->GetPlayer: playlist
 
 GetPlayer ->songDAO: findSongById(idSong)
 songDAO -->GetPlayer: song

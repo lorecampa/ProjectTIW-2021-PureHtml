@@ -9,7 +9,7 @@ participant ErrorPage.html
 participant GetPlaylist
 
 
-note left of AddSongToPlaylist: parame:\nidSong,\nidPlaylist,\ncurrentSlide
+note left of AddSongToPlaylist: Query string:\nidPlaylist,\ncurrentSlide\n\nForm:\nidSong
 
 AddSongToPlaylist ->SongDAO: findSongById(idSong)
 SongDAO -->AddSongToPlaylist: song
