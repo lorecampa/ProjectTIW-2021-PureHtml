@@ -10,7 +10,11 @@
 
     <ul>
         <li><h2 th:text="'Welcome '+ ${session.user.username}">UserName</h2></li>
-        <li class ="greenBtn"   style="float: right;"><a th:href="@{/Logout}">Logout</a></li>
+        <li style="float: right;">
+			<form th:action="@{/Logout}">
+				<input class = "greenBtn" type="submit" value="Logout" />
+			</form>
+		</li>
     </ul> 
 
 
@@ -67,9 +71,7 @@
             <form method= "POST" th:action="@{/CreateSong}" enctype="multipart/form-data">
                 <p class = "errorMessage" th:if = "${createSongWarning}" th:text=" ${createSongWarning}">error</p>
                 <label>Title</label> <input name = "title" id="title" type="text" required>
-    
-                
-                <label th:if = "${userAlbums.isEmpty()}">No albums created yet</label>
+                <p th:if = "${userAlbums.isEmpty()}">No albums created yet</p>
                 <div th:if = "${not userAlbums.isEmpty()}">
                     <label>Albums </label>
                     <select class="custom-select" th:if = "${not userAlbums.isEmpty()}" name= "albums" th:remove = "all-but-first" required>
@@ -78,11 +80,10 @@
                         <option>Imagine</option>
                     </select>
                 </div>
-                <label class="custom-upload">
+                <div class="custom-upload">
                     <input name = "audio" type="file"required>
                     Audio Upload
-                </label>
-                
+                </div>
                 <input class = "greenBtn" value = "create" type = "submit">		
             </form>
         </div>
@@ -93,10 +94,17 @@
             <h2>Create Album</h2>
             <form method= "POST" th:action="@{/CreateAlbum}" enctype="multipart/form-data">
                 <p class = "errorMessage" th:if = "${createAlbumWarning}" th:text=" ${createAlbumWarning}">error</p>
-                <label>Title</label> <input name = "title" id="title" type="text" required><br>
-                <label>Interpreter</label> <input name = "interpreter" type="text" required><br>
-                <label>Year</label> <input name = "year" type="number" min=0 required><br>
-                <label>Genre</label>
+
+                <p>Title</p> 
+                <input name = "title" id="title" type="text" required>
+
+                <p>Interpreter</p> 
+                <input name = "interpreter" type="text" required>
+
+                <p>Year</p> 
+                <input name = "year" type="number" min=0 required>
+
+                <p>Genre</p>
                 <select class="custom-select" style="width:200px;"name= "genre" required>
                     <option value= "Rock">Rock</option>
                     <option value= "Pop">Pop</option>
@@ -111,10 +119,10 @@
                     <option value= "Polka">Polka</option>
                 </select><br>
     
-                <label class="custom-upload">
+                <div class="custom-upload">
                     <input name = "picture" type="file" required>
                     Image Upload
-                </label>
+                </div>
                 
                 <input class = "greenBtn" value = "create" type = "submit">		
             </form>

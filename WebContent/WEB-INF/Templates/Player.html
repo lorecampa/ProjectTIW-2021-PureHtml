@@ -3,20 +3,41 @@
 <head>
 <title>Player</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" th:href="@{/css/global.css}" href="../../css/global.css"/>
+<link rel="stylesheet" type="text/css" th:href="@{/css/player.css}" href="../../css/player.css"/>
 
 </head>
 <body>
-	<span th:text = ${song.title}> Title song </span><br>
-	<span th:text = ${album.title}> Album </span><br>
-	<span th:text = ${album.interpreter}> Interpreter</span><br>
-	<span th:text = ${album.year}> Year</span><br>
-	<span th:text = ${album.genre}> Genre</span><br>
-	<img  th:src="'ShowFile/image_' + ${album.imageUrl}" th:alt="${album.imageUrl}" width="150" height="100">
-	<br>
-	<audio controls>
-  		<source th:src="'ShowFile/audio_' + ${song.songUrl}" type="audio/ogg">
-  	</audio><br> 
-	<a th:href= "@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide=${0})}" th:text = "'Return to playlist ' + ${playlist.title}">return to playlist</a>
+
+	<ul>
+		<li style="float: left;">
+			<form th:action="@{/GetHomePage}">
+				<input class = "greenBtn" type="submit" value="HomePage" />
+			</form>
+		</li>
+
+		<li style="float: right;">
+			<form th:action="@{/Logout}">
+				<input class = "greenBtn" type="submit" value="Logout" />
+			</form>
+		</li>
+    </ul> 
+
+	<div class="formBox">
+		<h1 th:text = ${song.title}> Title song </h1>
+		<p th:text = ${album.title}> Album </p>
+		<p th:text = ${album.interpreter}> Interpreter</p>
+		<p th:text = ${album.year}> Year</p>
+		<p th:text = ${album.genre}> Genre</p>
+		<img src = "prova.jpg" th:src="'ShowFile/image_' + ${album.imageUrl}" th:alt="${album.imageUrl}">
+		<br>
+		<audio controls>
+			<source th:src="'ShowFile/audio_' + ${song.songUrl}" type="audio/ogg">
+		</audio>
+		<br>
+		<a th:href= "@{/GetPlaylist(idPlaylist = ${playlist.id}, currentSlide=${0})}" th:text = "'Return to playlist ' + ${playlist.title}">return to playlist</a>
+	</div>
+	
 
 	
 </body>

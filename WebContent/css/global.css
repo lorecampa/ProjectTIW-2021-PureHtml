@@ -22,7 +22,6 @@ input{
     margin-top: 10px;
     margin-bottom: 10px;
     box-shadow: 0 15px 25px rgba(0,0,0,.6);
-    border-radius: 10px;
     cursor: pointer;
     padding: 10px 10px;
     font-size: 15px;
@@ -30,6 +29,12 @@ input{
     position: relative;
 }
 
+input[type="text"]{
+    width: 200px;
+}
+input[type="password"]{
+    width: 200px;
+}
 
 
 
@@ -44,6 +49,8 @@ input{
     margin-top: 20px;
     margin-bottom: 20px;
     display: block;
+    border-radius: 10px;
+    
 
 }
 
@@ -92,6 +99,8 @@ ul {
   
   li {
     display:inline;
+    margin-left: 20px;
+    margin-right: 20px;
   }
 li a{
     text-decoration: none;

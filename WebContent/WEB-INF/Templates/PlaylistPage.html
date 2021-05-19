@@ -10,8 +10,16 @@
 <body>
 
     <ul>
-        <li class ="greenBtn"   style="float: left;">  <a th:href="@{/GetHomePage}"> HomePage</a></li>
-        <li class ="greenBtn"   style="float: right;"> <a th:href="@{/Logout}">Logout</a></li>
+		<li style="float: left;">
+			<form th:action="@{/GetHomePage}">
+				<input class = "greenBtn" type="submit" value="HomePage" />
+			</form>
+		</li>
+		<li style="float: right;">
+			<form th:action="@{/Logout}">
+				<input class = "greenBtn" type="submit" value="Logout" />
+			</form>
+		</li>
     </ul> 
 
 	<h1 th:text="'Playlist: '+ ${playlist.title}">NamePlaylist</h1>
@@ -23,13 +31,15 @@
 			<tbody>
 				<tr>
 					<td  th:each= "song: ${songs}">
-					<a th:href= "@{/GetPlayer(idSong = ${song.id}, idPlaylist = ${playlist.id})}"><span th:text = "${song.title}">Title0</span></a>
+						<a th:href= "@{/GetPlayer(idSong = ${song.id}, idPlaylist = ${playlist.id})}">
+							<span th:text = "${song.title}">Title0</span>
+						</a>
 					</td>
 				</tr>
 	
 				<tr>
 					 <td th:each= "album: ${albums}">
-					 <img  th:src="'ShowFile/image_' + ${album.imageUrl}" th:alt="${album.imageUrl}">
+						<img th:src="'ShowFile/image_' + ${album.imageUrl}" th:alt="${album.imageUrl}">
 					 </td>
 				</tr>	
 			</tbody>
