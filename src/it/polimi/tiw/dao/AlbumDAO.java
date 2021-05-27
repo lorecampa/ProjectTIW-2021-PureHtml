@@ -4,9 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import it.polimi.tiw.beans.Album;
 import it.polimi.tiw.beans.Genre;
+import it.polimi.tiw.beans.Song;
 
 
 public class AlbumDAO {
@@ -17,44 +19,71 @@ public class AlbumDAO {
 	}
 	
 	
-	//return 0 if album was already present (IGNORE statement)
 	public int createAlbum(Album album) throws SQLException {
-		int code = 0;
-		String query = "INSERT IGNORE INTO `MusicPlaylistdb`.`Album` (`id`, `title`, `interpreter`, `year`, `genre`, `idCreator`, `imageUrl`)\n"
-				+ "VALUES (\n"
-				+ "(SELECT (coalesce(MAX(a1.id), 0) + 1) FROM MusicPlaylistdb.Album as a1),\n"
-				+ "?,\n"
-				+ "?,\n"
-				+ "?,\n"
-				+ "?,\n"
-				+ "?,\n"
-				+ "?\n"
-				+ ")";
+		int result = 0;
+		PreparedStatement pstm1 = null;
+		PreparedStatement pstm2 = null;
 		
-		PreparedStatement pstatement = null;
+		// for the new songId
+        ResultSet rs = null;
 		try {
-			pstatement = con.prepareStatement(query);
-			pstatement.setString(1, album.getTitle());
-			pstatement.setString(2, album.getInterpreter());
-			pstatement.setShort(3,  album.getYear());
-			pstatement.setString(4, album.getGenre().getDisplayName());
-			pstatement.setInt(5, album.getIdCreator());
-			pstatement.setString(6, album.getImageUrl());
+			// set auto commit to false
+            con.setAutoCommit(false);
+            
+            String query1 = "INSERT IGNORE INTO `MusicPlaylistDb`.`Album` (`title`, `interpreter`, `year`, `genre`, `idCreator`) VALUES(?, ?, ?, ?, ?);";
+			pstm1 = con.prepareStatement(query1, Statement.RETURN_GENERATED_KEYS);
+			pstm1.setString(1, album.getTitle());
+			pstm1.setString(2, album.getInterpreter());
+			pstm1.setShort(3, album.getYear());
+			pstm1.setString(4, album.getGenre().getDisplayName());
+			pstm1.setInt(5, album.getIdCreator());
+			int rowAffected = pstm1.executeUpdate();
 			
-			code = pstatement.executeUpdate();
+			// get song id
+            rs = pstm1.getGeneratedKeys();
+            int albumId = 0;
+            if (rs.next()) {
+            	albumId = rs.getInt(1);
+            	album.setId(albumId);
+            }
+            
+			if (rowAffected == 1) {
+				//update songUrl
+				String query2 = "UPDATE MusicPlaylistDb.Album as a\n"
+						+ "SET a.imageUrl = ?\n"
+						+ "WHERE a.id = ?;";
+				
+				pstm2 = con.prepareStatement(query2);
+				String imageUrl = "albumImage_" + albumId + "" + album.getImageUrl();
+				album.setImageUrl(imageUrl);
+				pstm2.setString(1, imageUrl);
+				pstm2.setInt(2, albumId);
+				int rowUpdated = pstm2.executeUpdate();
+				
+				if (rowUpdated == 1) {
+					con.commit();
+					result = 1;
+					
+				}else {
+					con.rollback();
+				}
+				
+			}else {
+				con.rollback();
+			}
 			
 		} catch (SQLException e) {
 			throw new SQLException(e);
 		} finally {
 			try {
-				pstatement.close();
+				if(rs != null)  rs.close();
+				if(pstm1 != null) pstm1.close();
+                if(pstm2 != null) pstm2.close();
 			} catch (Exception e1) {
 
 			}
 		}
-		
-		return code;
-		
+		return result;
 		
 	}
 	

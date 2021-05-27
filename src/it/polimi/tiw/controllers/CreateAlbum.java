@@ -127,13 +127,9 @@ public class CreateAlbum extends HttpServlet {
 		String imageFileName = Paths.get(imagePart.getSubmittedFileName()).getFileName().toString();
 		int indexImage = imageFileName.lastIndexOf('.');
 		String imageExt = imageFileName.substring(indexImage);
-		int imageHash = imageFileName.hashCode();
 		
-        String formattedDate = new SimpleDateFormat("MMddyyyyhmmssa").format(new Date());
 		
-		String imageId = "" + user.getId() + "-" + imageHash + "-" + formattedDate + imageExt;
-		
-		Album album = new Album(title, interpreter, year, genre, user.getId(), imageId);
+		Album album = new Album(title, interpreter, year, genre, user.getId(), imageExt);
 		AlbumDAO albumDAO = new AlbumDAO(connection);
 		
 		int created;
@@ -151,7 +147,7 @@ public class CreateAlbum extends HttpServlet {
 				
 		
 		//imagePath refers to the path initialized in the init part
-		String imageOutputPath = imagePath + imageId;
+		String imageOutputPath = imagePath + album.getImageUrl();
 		
 		//save image
 		File imageFile = new File(imageOutputPath);

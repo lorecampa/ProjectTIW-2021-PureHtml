@@ -129,19 +129,13 @@ public class CreateSong extends HttpServlet {
 		int indexAudio = audioFileName.lastIndexOf('.');
 		String audioExt = "";
 		audioExt = audioFileName.substring(indexAudio);
-		int audioHash = audioFileName.hashCode();
-		String formattedDate = new SimpleDateFormat("MMddyyyyhmmssa").format(new Date());
 		
-		String audioId = "" + user.getId() + "-" + album.getId() + "-" + audioHash + "-" + formattedDate + audioExt;
-		
-		//String audioId = "" + song.getId() + "-" + song.getIdAlbum() + audioExt;
-		
+				
 		//create song (audioUrl is set by the database)
-		Song song = new Song(title, audioId, album.getId());
+		Song song = new Song(title, audioExt, album.getId());
 		SongDAO songDAO = new SongDAO(connection);
 		int created;
 		try {
-			//return 0 if the song was already present (title, albumId) are a unique constraint
 			created = songDAO.createSong(song);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
@@ -157,7 +151,7 @@ public class CreateSong extends HttpServlet {
 			
 		
 		//audioPath refers to the path initialized in the init part
-		String audioOutputPath = audioPath + audioId;
+		String audioOutputPath = audioPath + song.getSongUrl();
 						
 		File audioFile = new File(audioOutputPath);
 		
