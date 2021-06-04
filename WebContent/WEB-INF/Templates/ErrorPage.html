@@ -17,7 +17,7 @@
         <a th:if = "${session.user != null}" th:href="@{/GetHomePage}">Home Page</a>
         <a th:if = "${session.user != null}" th:href="@{/Logout}">Logout</a>
         
-        <a th:if = "${session.user == null}" th:href="@{/LoginPage}">Login Page</a>
+        <a th:if = "${session.user == null}" th:href="@{/SubmitLogin}">Login Page</a>
 
     </div>
 	

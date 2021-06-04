@@ -18,7 +18,6 @@ CreateSong ->CreateSong: request.setAttribute(errorMessage)
 CreateSong ->ErrorPage.html: forward
 end
 
-note left of CreateSong: before creating song\nin database we\ncompute the audioId\nbased on this format\n[ userId + albumId + audioFileNameHash +\ntimestamp + audioExtension ]
 
 CreateSong ->songDAO: createSong(song)
 songDAO -->CreateSong: created

@@ -7,8 +7,6 @@ participant GetHomePage
 
 note left of CreateAlbum: Form:\ntitle,\ninterpreter,\nyear,\ngenre,\nimage
 
-note left of CreateAlbum: before album creation\nin database we\ncompute the imageId\nbased on this format\n[ userId + imageFileNameHash +\ntimestamp + imageExtension ]
-
 CreateAlbum ->AlbumDAO: createAlbum(album)
 AlbumDAO -->CreateAlbum: created
 

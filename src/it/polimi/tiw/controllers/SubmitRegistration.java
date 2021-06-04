@@ -49,12 +49,11 @@ public class SubmitRegistration extends HttpServlet {
 		String password = request.getParameter("password");
 		String name = request.getParameter("name");
 		String surname = request.getParameter("surname");
-		
-		
+
 		//need to control if they are correct
 		if(username == null || username.isEmpty() || email == null || email.isEmpty() ||
 				password == null|| password.isEmpty() || name == null || name.isEmpty() ||
-				surname == null || name.isEmpty()) {
+				surname == null || surname.isEmpty()) {
 			forwardToErrorPage(request, response, ErrorType.REGISTRATION_BAD_PARAMATERS.getMessage());
 			return;
 		}

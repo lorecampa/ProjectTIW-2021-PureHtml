@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.21, for macos10.15 (x86_64)
 --
--- Host: localhost    Database: MusicPlaylistdb
+-- Host: localhost    Database: MusicPlaylistDb
 -- ------------------------------------------------------
 -- Server version	8.0.24
 
@@ -29,12 +29,12 @@ CREATE TABLE `Album` (
   `year` smallint NOT NULL,
   `genre` varchar(45) NOT NULL,
   `idCreator` int NOT NULL,
-  `imageUrl` varchar(255) NOT NULL,
+  `imageUrl` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniqueAlbum` (`title`,`interpreter`,`year`,`genre`),
   KEY `user_idx` (`idCreator`),
   CONSTRAINT `user` FOREIGN KEY (`idCreator`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,7 +43,7 @@ CREATE TABLE `Album` (
 
 LOCK TABLES `Album` WRITE;
 /*!40000 ALTER TABLE `Album` DISABLE KEYS */;
-INSERT INTO `Album` VALUES (1,'faefe','faefe',22,'Rock',1,'1--1162972334-0507202111415pm.jpg');
+INSERT INTO `Album` VALUES (3,'Gemelli','Ernia',2020,'Pop',2,'albumImage_3.jpg'),(5,'fafe','faeaf',22,'Rock',2,'albumImage_5.jpg'),(6,'Lupo','ALberto',222,'Rock',2,'albumImage_6.jpg'),(7,'eafeaf','feafeaf',222,'Rock',2,'albumImage_7.jpg'),(8,'fafa','feafa',222,'Rock',2,'albumImage_8.jpg'),(9,'AAAAAA','BBBBBB',222,'Rock',2,'albumImage_9.jpg');
 /*!40000 ALTER TABLE `Album` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -71,8 +71,34 @@ CREATE TABLE `Match` (
 
 LOCK TABLES `Match` WRITE;
 /*!40000 ALTER TABLE `Match` DISABLE KEYS */;
-INSERT INTO `Match` VALUES (1,1,'2021-05-07 13:14:25');
+INSERT INTO `Match` VALUES (11,2,'2021-05-26 18:40:04'),(11,3,'2021-05-26 18:36:27');
 /*!40000 ALTER TABLE `Match` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `MatchOrder`
+--
+
+DROP TABLE IF EXISTS `MatchOrder`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `MatchOrder` (
+  `idSong` int NOT NULL,
+  `idPlaylist` int NOT NULL,
+  `order` int NOT NULL,
+  `dateAdding` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`idSong`,`idPlaylist`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `MatchOrder`
+--
+
+LOCK TABLES `MatchOrder` WRITE;
+/*!40000 ALTER TABLE `MatchOrder` DISABLE KEYS */;
+INSERT INTO `MatchOrder` VALUES (11,2,3,'2021-05-26 20:32:15'),(11,3,1,'2021-05-26 20:36:44');
+/*!40000 ALTER TABLE `MatchOrder` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -91,7 +117,7 @@ CREATE TABLE `Playlist` (
   UNIQUE KEY `playlistUnique` (`title`,`idCreator`),
   KEY `user_idx` (`idCreator`),
   CONSTRAINT `userPlaylist` FOREIGN KEY (`idCreator`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,7 +126,7 @@ CREATE TABLE `Playlist` (
 
 LOCK TABLES `Playlist` WRITE;
 /*!40000 ALTER TABLE `Playlist` DISABLE KEYS */;
-INSERT INTO `Playlist` VALUES (1,'fafe',1,'2021-05-07 13:12:42');
+INSERT INTO `Playlist` VALUES (2,'AllDaySong',2,'2021-05-22 09:37:15'),(3,'AllNightSong',2,'2021-05-22 09:38:16');
 /*!40000 ALTER TABLE `Playlist` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -114,13 +140,13 @@ DROP TABLE IF EXISTS `Song`;
 CREATE TABLE `Song` (
   `id` int NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
-  `songUrl` varchar(255) NOT NULL,
+  `songUrl` varchar(255) DEFAULT NULL,
   `idAlbum` int NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniqueSong` (`title`,`idAlbum`),
   KEY `album_idx` (`idAlbum`),
   CONSTRAINT `album` FOREIGN KEY (`idAlbum`) REFERENCES `Album` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -129,7 +155,7 @@ CREATE TABLE `Song` (
 
 LOCK TABLES `Song` WRITE;
 /*!40000 ALTER TABLE `Song` DISABLE KEYS */;
-INSERT INTO `Song` VALUES (1,'efafe','1-1--97557921-0507202111423pm.mp3',1);
+INSERT INTO `Song` VALUES (11,'Vivo','songAudio_11_3.mp3',3),(12,'SecondoSong','songAudio_12_3.mp3',3);
 /*!40000 ALTER TABLE `Song` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -149,7 +175,7 @@ CREATE TABLE `User` (
   `surname` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniqueEmail` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,7 +184,7 @@ CREATE TABLE `User` (
 
 LOCK TABLES `User` WRITE;
 /*!40000 ALTER TABLE `User` DISABLE KEYS */;
-INSERT INTO `User` VALUES (1,'lupo','lorecampa99@gmail.com','ciao','Lorenzo','campana');
+INSERT INTO `User` VALUES (2,'lorecampa','lorecampa99@gmail.com','ciao','Lorenzo','Campana');
 /*!40000 ALTER TABLE `User` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -171,4 +197,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-05-17 15:03:20
+-- Dump completed on 2021-05-28  0:25:32

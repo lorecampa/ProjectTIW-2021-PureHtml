@@ -1,7 +1,6 @@
 package it.polimi.tiw.beans;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class Playlist {
 	private int id;

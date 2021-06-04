@@ -95,7 +95,6 @@ public class PlaylistDAO {
 			pstatement.setInt(1, playlistId);
 			result = pstatement.executeQuery();
 			
-			//devo considerare il caso in cui ci sono più playlist con quel id? non credo essendo primary key
 			while(result.next()) {
 				playlist = new Playlist();
 				playlist.setId(playlistId);
