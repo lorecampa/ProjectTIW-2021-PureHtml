@@ -82,9 +82,11 @@ public class AddSongToPlaylist extends HttpServlet {
 		}
 		//finding album bean
 		AlbumDAO albumDAO = new AlbumDAO(connection);
-		Album album;
+		Album album = null;
 		try {
-			album = albumDAO.findAlumById(song.getIdAlbum());
+			if (song!= null) {
+				album = albumDAO.findAlumById(song.getIdAlbum());
+			}
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
 			return;
@@ -100,7 +102,9 @@ public class AddSongToPlaylist extends HttpServlet {
 		}
 		
 		//control autentity
-		if (playlist.getIdCreator() != user.getId() || album.getIdCreator() != user.getId()) {
+		if (playlist == null || song == null || album == null
+				|| (playlist.getIdCreator() != user.getId())
+				|| (album.getIdCreator() != user.getId())) {
 			forwardToErrorPage(request, response, ErrorType.SONG_NOT_EXSIST.getMessage());
 			return;
 		}
@@ -110,6 +114,7 @@ public class AddSongToPlaylist extends HttpServlet {
 		int matchCreated;
 		try {
 			//return 0 if the song is already present in the playlist
+			//(idPlaylist, idSong) are unique constraint in Match table
 			matchCreated = matchDAO.createMatch(match);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());

@@ -51,7 +51,7 @@ public class CreateSong extends HttpServlet {
     	connection = ConnectionHandler.getConnection(servletContext);
 		this.templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
 		
-		//starting path for saving images and audio files
+		//starting path for saving audio files
     	audioPath = getServletContext().getInitParameter("audioPath");
     	
     }
@@ -99,7 +99,7 @@ public class CreateSong extends HttpServlet {
 			forwardToErrorPage(request, response, e.getMessage());
 			return;
 		}
-		//if idAlbum is doesn't belong to the user
+		//if idAlbum doesn't belong to the user
 		if (album == null || (album.getIdCreator() != user.getId())) {
 			forwardToErrorPage(request, response, ErrorType.ALBUM_NOT_EXIST.getMessage());
 			return;
@@ -129,11 +129,12 @@ public class CreateSong extends HttpServlet {
 		audioExt = audioFileName.substring(indexAudio);
 		
 				
-		//create song (audioUrl is set by the database)
 		Song song = new Song(title, audioExt, album.getId());
 		SongDAO songDAO = new SongDAO(connection);
 		int created;
 		try {
+			//title and idAlbum are unique constraint
+			//sets audioUrl of song instance after creating it
 			created = songDAO.createSong(song);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
@@ -146,16 +147,13 @@ public class CreateSong extends HttpServlet {
 			return;
 		}
 		
-			
-		
 		//audioPath refers to the path initialized in the init part
 		String audioOutputPath = audioPath + song.getSongUrl();
-						
+		
 		File audioFile = new File(audioOutputPath);
-		
-		
+			
 		try (InputStream fileContent = audioPart.getInputStream()) {
-
+			
 			Files.copy(fileContent, audioFile.toPath());
 
 		} catch (Exception e) {

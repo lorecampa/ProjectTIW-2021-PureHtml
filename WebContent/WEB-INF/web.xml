@@ -50,6 +50,7 @@
   	<url-pattern>/GetPlaylist</url-pattern>
   	<url-pattern>/GetPlayer</url-pattern>
   	<url-pattern>/AddSongToPlaylist</url-pattern>
+  	<url-pattern>/ShowFile</url-pattern>
   </filter-mapping>
   
   

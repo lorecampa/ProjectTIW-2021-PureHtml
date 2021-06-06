@@ -85,7 +85,7 @@ public class SongDAO {
 	}
 	
 		
-	//return -1 if song is not present
+	//return -1 if song is not present (title and idAlbum are unique constraint in Song table)
 	public int findSongId(Song song) throws SQLException {
 		int idResult = -1;
 		String query = "SELECT id FROM MusicPlaylistdb.Song WHERE title = ? && idAlbum = ?";

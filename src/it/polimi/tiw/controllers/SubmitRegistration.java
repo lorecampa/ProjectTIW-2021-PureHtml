@@ -62,9 +62,7 @@ public class SubmitRegistration extends HttpServlet {
 			//return error to Registration.html
 			request.setAttribute("registrationWarning", ErrorType.PASSWORD_LENGTH_ERROR.getMessage());
 			forward(request, response, PathUtils.REGISTER_PAGE);
-			return;
-			
-			//guardare quando fare il return durante il forward dei template
+			return;			
 		}
 		
 		UserDAO userDAO = new UserDAO(connection);
@@ -73,7 +71,7 @@ public class SubmitRegistration extends HttpServlet {
 		//creation user
 		int created = 0;
 		try {
-			//return 0 if the user is already creted (email is unique identifier)
+			//return 0 if the user is already creted (email is unique identifier in db)
 			created = userDAO.createUser(user);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());

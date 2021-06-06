@@ -52,7 +52,7 @@ public class UserDAO {
 		return id;
 	}
 	
-
+	
 	public boolean isPasswordCorrect(int idUser, String password) throws SQLException {
 		boolean queryResult = false;
 		String query = "SELECT EXISTS (SELECT * FROM user WHERE id = ? and password = ?)";

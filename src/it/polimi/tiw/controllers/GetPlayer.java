@@ -81,9 +81,11 @@ public class GetPlayer extends HttpServlet {
 		
 		//finding album bean
 		AlbumDAO albumDAO = new AlbumDAO(connection);
-		Album album;
+		Album album = null;
 		try {
-			album = albumDAO.findAlumById(song.getIdAlbum());
+			if (song != null) {
+				album = albumDAO.findAlumById(song.getIdAlbum());
+			}
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
 			return;

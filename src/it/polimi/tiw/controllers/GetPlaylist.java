@@ -29,7 +29,7 @@ public class GetPlaylist extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connection connection = null;
 	private TemplateEngine templateEngine;
-	public final int NUM_SLIDE_SONG = 5;
+	public final int NUM_SONG_SLIDE = 5;
 
 	   
     
@@ -46,11 +46,11 @@ public class GetPlaylist extends HttpServlet {
 
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
 		HttpSession session = request.getSession();
 		User user = (User) session.getAttribute("user");
 		int idUser = user.getId();
 		
+		//local error
 		String addSongWarning = (String) session.getAttribute("addSongToPlaylistWarning");
 		if (addSongWarning != null) {
 			session.removeAttribute("addSongToPlaylistWarning");
@@ -147,13 +147,13 @@ public class GetPlaylist extends HttpServlet {
 		
 		int sizeSongs = songs.size();
 		//control currentSlide correctness
-		int div = (sizeSongs / NUM_SLIDE_SONG);
+		int div = (sizeSongs / NUM_SONG_SLIDE);
 		if (currentSlide < 0 || currentSlide > div) {
 			forwardToErrorPage(request, response, ErrorType.PLAYLIST_NOT_EXSIST.getMessage());
 			return;
 		}
 		
-		int fromIndex = currentSlide * NUM_SLIDE_SONG;
+		int fromIndex = currentSlide * NUM_SONG_SLIDE;
 		int toIndex = fromIndex + 5;
 		boolean isPrevActive = false;
 		boolean isNextActive = false;

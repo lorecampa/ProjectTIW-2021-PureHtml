@@ -34,7 +34,7 @@ public class SubmitLogin extends HttpServlet {
     public void init() throws ServletException {
     	ServletContext servletContext = getServletContext();
     	connection = ConnectionHandler.getConnection(servletContext);
-		this.templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
+		templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

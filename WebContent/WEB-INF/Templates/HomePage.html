@@ -71,6 +71,7 @@
             <form method= "POST" th:action="@{/CreateSong}" enctype="multipart/form-data">
                 <p class = "errorMessage" th:if = "${createSongWarning}" th:text=" ${createSongWarning}">error</p>
                 <label>Title</label> <input name = "title" id="title" type="text" required>
+                
                 <p th:if = "${userAlbums.isEmpty()}">No albums created yet</p>
                 <div th:if = "${not userAlbums.isEmpty()}">
                     <label>Albums </label>
@@ -80,10 +81,12 @@
                         <option>Imagine</option>
                     </select>
                 </div>
+                
                 <div class="custom-upload">
                     <input name = "audio" type="file"required>
                     Audio Upload
                 </div>
+                
                 <input class = "greenBtn" value = "create" type = "submit">		
             </form>
         </div>
@@ -95,17 +98,17 @@
             <form method= "POST" th:action="@{/CreateAlbum}" enctype="multipart/form-data">
                 <p class = "errorMessage" th:if = "${createAlbumWarning}" th:text=" ${createAlbumWarning}">error</p>
 
-                <p>Title</p> 
+                <label>Title</label> 
                 <input name = "title" id="title" type="text" required>
 
-                <p>Interpreter</p> 
+                <label>Interpreter</label> 
                 <input name = "interpreter" type="text" required>
 
-                <p>Year</p> 
+                <label>Year</label> 
                 <input name = "year" type="number" min=0 required>
 
-                <p>Genre</p>
-                <select class="custom-select" style="width:200px;"name= "genre" required>
+                <label>Genre</label>
+                <select class="custom-select" name= "genre" required>
                     <option value= "Rock">Rock</option>
                     <option value= "Pop">Pop</option>
                     <option value= "Electronic">Electronic</option>
@@ -117,7 +120,7 @@
                     <option value= "Hip Hop">Hip Hop</option>
                     <option value= "Punk">Punk</option>
                     <option value= "Polka">Polka</option>
-                </select><br>
+                </select>
     
                 <div class="custom-upload">
                     <input name = "picture" type="file" required>

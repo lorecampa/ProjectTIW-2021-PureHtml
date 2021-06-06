@@ -50,7 +50,7 @@ public class CreateAlbum extends HttpServlet {
     	connection = ConnectionHandler.getConnection(servletContext);
 		this.templateEngine = TymeleafHandler.getTemplateEngine(servletContext);
 		
-		//starting path for saving images and audio files
+		//starting path for saving images files
     	imagePath = getServletContext().getInitParameter("imagePath");
     	
     }
@@ -101,7 +101,7 @@ public class CreateAlbum extends HttpServlet {
 		}
 		
 		Genre genre = Genre.fromString(genreString);
-		if (genre.getDisplayName().equals("Not found")){
+		if (genre == Genre.NOT_FOUND){
 			forwardToErrorPage(request, response, ErrorType.CREATE_ALBUM_BAD_PARAMETERS.getMessage());
 			return;
 		}
@@ -133,6 +133,7 @@ public class CreateAlbum extends HttpServlet {
 		int created;
 		try {
 			//return 0 if already present in our database (title, interpreter, year, genre, idCreator) is a unique constraint
+			//and sets imageUrl of album instance with the new one
 			created = albumDAO.createAlbum(album);
 		} catch (SQLException e) {
 			forwardToErrorPage(request, response, e.getMessage());
@@ -152,9 +153,7 @@ public class CreateAlbum extends HttpServlet {
 		try (InputStream fileContent = imagePart.getInputStream()) {
 			
 			Files.copy(fileContent, imageFile.toPath());
-
 		} catch (Exception e) {
-			e.printStackTrace();
 			forwardToErrorPage(request, response, e.getMessage());
 			return;
 			
