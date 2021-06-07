@@ -65,7 +65,7 @@ public class SubmitLogin extends HttpServlet {
 		}
 		
 		if (idUser == -1) {
-			request.setAttribute("loginWarnings", "Incorrect username");
+			request.setAttribute("loginWarnings", "Incorrect email");
 			forward(request, response, PathUtils.LOGIN_PAGE);
 			return;
 			
